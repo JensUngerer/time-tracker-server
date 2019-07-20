@@ -13,7 +13,7 @@ export class MonogDbOperations {
         this.mongoClient = new MongoClient(this.url);
     }
     
-    public insertOne(data: any) {        
+    public insertOne(data: any, collectionName: string) {        
         // https://mongodb.github.io/node-mongodb-native/
         // https://mongodb.github.io/node-mongodb-native/3.2/
 
@@ -28,7 +28,7 @@ export class MonogDbOperations {
     
                 const db = this.mongoClient.db(this.databaseName);
     
-                const collection = db.collection(routes.timeRecordsCollectionName);
+                const collection = db.collection(collectionName);
                 delete data._id;
                 collection.insertOne(data, (insertError: any, result: any) => {
                     if (insertError) {

@@ -1,7 +1,6 @@
 import { MonogDbOperations } from './../helpers/mongoDbOperations';
 import { Request } from 'express';
 import { ITimeRecordsDocument, ITimeRecordsDocumentData } from './../../../../common/typescript/mongoDB/iTimeRecordsDocument';
-import { MongoClient } from 'mongodb';
 import * as routes from '../../../../common/typescript/routes.js';
 
 export default {
@@ -16,6 +15,6 @@ export default {
 
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
         mongoDbOperations.prepareConnection();
-        return mongoDbOperations.insertOne(line);
+        return mongoDbOperations.insertOne(line, routes.timeRecordsCollectionName);
     }
 }

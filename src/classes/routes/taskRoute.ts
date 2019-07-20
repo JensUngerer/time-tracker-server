@@ -4,11 +4,11 @@ import taskController from './../controllers/taskController';
 
 const router = express.Router();
 
-const postProject = async (req: Request, res: Response) => {
+const postTask = async (req: Request, res: Response) => {
     const response = await taskController.post(req);
 
     res.json(response);
 };
 
-router.route('/').post(asyncHandler(postProject));
+router.route('/').post(asyncHandler(postTask));
 export default router;
