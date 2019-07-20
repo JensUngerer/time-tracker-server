@@ -1,7 +1,8 @@
 import { AppManager } from './appManager';
 import app from './app';
+import routesConfig from './../../common/typescript/routes';
 
-const port: number = 3000;
+const port: number = routesConfig.port;
 app.configure();
 app.configureExpress();
 
