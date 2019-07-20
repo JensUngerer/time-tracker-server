@@ -1,5 +1,4 @@
 import express, { Request, Response } from 'express';
-// import routesConfig from './../../../../common/typescript/routes';
 import * as routesConfig from './../../../../common/typescript/routes.js';
 
 import timeRecordRoutes from './timeRecordRoutes';
