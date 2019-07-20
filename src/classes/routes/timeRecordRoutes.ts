@@ -7,7 +7,13 @@ import timeRecordController from '../controllers/timeRecordController'; // cont
 const router = express.Router();
 
 const postTimeRecord = async (req: Request, res: Response) => {
+    // DEBUGGING:
+    // console.error('postTimeRecord is being called');
     const timeRecordPostResponse = await timeRecordController.post(req);
+    
+    // DEBUGGING:
+    // console.error('timeRecordController was called');
+    
     res.json(timeRecordPostResponse);
 };
 
