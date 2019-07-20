@@ -10,5 +10,12 @@ export default {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
         mongoDbOperations.prepareConnection();
         return mongoDbOperations.insertOne(task, routes.tasksCollectionName);
+    },
+    get(req: Request): Promise<any[]> {
+        console.error('tasks-get');
+        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
+        mongoDbOperations.prepareConnection();
+      
+        return mongoDbOperations.getAll(routes.tasksCollectionName);
     }
 };

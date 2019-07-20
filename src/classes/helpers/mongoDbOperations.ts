@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient, Cursor } from 'mongodb';
 import * as routes from '../../../../common/typescript/routes.js';
 
 export class MonogDbOperations {
@@ -11,6 +11,39 @@ export class MonogDbOperations {
         this.databaseName = routes.databaseName;
 
         this.mongoClient = new MongoClient(this.url);
+    }
+
+    public getAll(collectionName: string): Promise<any[]> {
+        return new Promise<any>((resolve: (value: any[]) => void, reject: (value: any) => void) => {
+            this.mongoClient.connect((err: any) => {
+                if (err) {
+                    console.error(err);
+                    resolve(err);
+                    return;
+                }
+                console.log("Connected successfully to server");
+    
+                const db = this.mongoClient.db(this.databaseName);
+    
+                const collection = db.collection(collectionName);
+                
+                const cursor: Cursor<any> = collection.find({});
+                if (!cursor) {
+                    console.error('!cursor');
+                    resolve([]);
+                    this.mongoClient.close();
+                    return;
+                }
+
+                cursor.toArray().then((resolvedData: any[])=>{
+                    resolve(resolvedData);
+                    this.mongoClient.close();
+                }).catch(() => {
+                    resolve([]);
+                    this.mongoClient.close();
+                });
+            });
+        });   
     }
     
     public insertOne(data: any, collectionName: string) {        

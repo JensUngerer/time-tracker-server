@@ -6,7 +6,7 @@ import bodyParser = require('body-parser');
 import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
-import timeRecordRoute from './classes/routes/routes';
+import myRoutes from './classes/routes/routes';
 
 export interface IApp {
     configure(): void;
@@ -44,7 +44,13 @@ export class App implements IApp{
         // https://stackoverflow.com/questions/30546524/making-angular-routes-work-with-express-routes
         // https://stackoverflow.com/questions/26917424/angularjs-and-express-routing-404
         // https://stackoverflow.com/questions/26079611/node-js-typeerror-path-must-be-absolute-or-specify-root-to-res-sendfile-failed
-        this.express.get('*', (request: Request, response: Response) => {
+        this.express.get('/', (request: Request, response: Response) => {
+            // DEBUGGING:
+            // console.log(request.url);
+            // console.log(pathStr);
+            response.sendFile('index.html', { root: pathStr });
+        });
+        this.express.get('/views/*', (request: Request, response: Response) => {
             // DEBUGGING:
             // console.log(request.url);
             // console.log(pathStr);
@@ -53,7 +59,7 @@ export class App implements IApp{
     }
 
     public configureRest() {
-        this.express.use('/', timeRecordRoute);
+        this.express.use('/', myRoutes);
     }
 
     public listen(port: number): void {
