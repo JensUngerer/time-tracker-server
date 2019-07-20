@@ -7,8 +7,8 @@ export default {
         // console.error('controller: '+ JSON.stringify(req));
 
         console.error('controller');
-        const parsedBody = JSON.parse(req.body);
-        const line: IGridCommitLine = parsedBody.line;
+        // const parsedBody = JSON.parse(req.);
+        const line: IGridCommitLine = req.body.line;
         console.error(JSON.stringify(line, null, 4));
 
         return Promise.resolve(req.body);
