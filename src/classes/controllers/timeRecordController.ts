@@ -30,8 +30,8 @@ export default {
                 const db = mongoClient.db(databaseName);
 
                 const collection = db.collection(routes.timeRecordsCollectionName);
-                const castedDocument: ITimeRecordsDocumentData = line as ITimeRecordsDocumentData;
-                collection.insertOne(castedDocument, (insertError: any, result: any) => {
+                delete line._id;
+                collection.insertOne(line, (insertError: any, result: any) => {
                     if (insertError) {
                         resolve(insertError);
                         return;
@@ -40,7 +40,7 @@ export default {
                     // DEBUGGING:
                     console.log(JSON.stringify(result, null, 4));
 
-                    resolve(castedDocument);
+                    resolve(line);
                     mongoClient.close();
                 });
             });
