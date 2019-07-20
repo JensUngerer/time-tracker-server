@@ -6,12 +6,14 @@ import bodyParser = require('body-parser');
 import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
+import timeRecordRoute from './classes/routes/routes';
 
 export interface IApp {
     configure(): void;
     configureExpress(): void;
     listen(port: number): void;
     shutdown(): Promise<boolean>;
+    configureRest(): void;
 }
 
 export class App implements IApp{
@@ -48,6 +50,10 @@ export class App implements IApp{
             // console.log(pathStr);
             response.sendFile('index.html', { root: pathStr });
         });
+    }
+
+    public configureRest() {
+        this.express.use('/', timeRecordRoute);
     }
 
     public listen(port: number): void {
