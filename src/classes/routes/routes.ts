@@ -1,7 +1,8 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import * as routesConfig from './../../../../common/typescript/routes.js';
 
 import timeRecordRoutes from './timeRecordRoutes';
+import taskRoute from './taskRoute';
 
 // https://github.com/czechboy0-deprecated/Express-4x-Typescript-Sample/blob/master/routes/users.ts
 // https://github.com/linnovate/mean/blob/master/server/config/express.js
@@ -9,5 +10,6 @@ const router = express.Router();
 
 // https://github.com/linnovate/mean/blob/master/server/routes/index.route.js
 router.use(routesConfig.timeRecord, timeRecordRoutes);
+router.use(routesConfig.task, taskRoute);
 
 export default router;
