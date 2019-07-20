@@ -7,7 +7,14 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 
-export class App {
+export interface IApp {
+    configure(): void;
+    configureExpress(): void;
+    listen(port: number): void;
+    shutdown(): Promise<boolean>;
+}
+
+export class App implements IApp{
 
     private express: Application;
     private server: Server;
@@ -17,14 +24,14 @@ export class App {
         this.server = http.createServer(this.express);
     }
 
-    public configure() {
+    public configure(): void {
         this.express.use(bodyParser.json());
         this.express.use(bodyParser.urlencoded({extended: true}));
         this.express.use(helmet());
         this.express.use(cors());
     }
 
-    public configureExpress() {
+    public configureExpress(): void {
         const absolutePathToAppJs = process.argv[1];
         const relativePathToAppJs: string = './../../../client/dist/mtt-client';
         const pathStr: string = path.resolve(absolutePathToAppJs, relativePathToAppJs);
@@ -43,7 +50,7 @@ export class App {
         });
     }
 
-    public listen(port: number) {
+    public listen(port: number): void {
         this.server.listen(port, ()=>{
             console.error('listening on port:' + port);
         });

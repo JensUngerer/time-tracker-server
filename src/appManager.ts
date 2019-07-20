@@ -1,7 +1,7 @@
-import { App } from "./app";
+import { IApp } from "./app";
 
 export class AppManager {
-    public static registerAppClosingEvent(app: App) {
+    public static registerAppClosingEvent(app: IApp) {
         const gracefulShutdown: (shutdownMsg: string) => void = (shutdownMsg: string) => {
             const shutdownPromise: Promise<boolean> = app.shutdown();
             shutdownPromise.then(() => {
