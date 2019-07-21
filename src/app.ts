@@ -7,6 +7,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import myRoutes from './classes/routes/routes';
+import * as routesConfig from './../../common/typescript/routes.js';
 
 export interface IApp {
     configure(): void;
@@ -50,7 +51,7 @@ export class App implements IApp{
             // console.log(pathStr);
             response.sendFile('index.html', { root: pathStr });
         });
-        this.express.get('/views/*', (request: Request, response: Response) => {
+        this.express.get('/' + routesConfig.viewsPrefix +'*', (request: Request, response: Response) => {
             // DEBUGGING:
             // console.log(request.url);
             // console.log(pathStr);
