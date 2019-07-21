@@ -10,7 +10,7 @@ export class MonogDbOperations {
         this.url = routes.url;
         this.databaseName = routes.databaseName;
 
-        this.mongoClient = new MongoClient(this.url);
+        this.mongoClient = new MongoClient(this.url, { useNewUrlParser: true });
     }
 
     public getAll(collectionName: string): Promise<any[]> {
