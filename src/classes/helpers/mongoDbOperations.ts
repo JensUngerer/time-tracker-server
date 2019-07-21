@@ -21,8 +21,6 @@ export class MonogDbOperations {
                     resolve(err);
                     return;
                 }
-                console.log("Connected successfully to server");
-    
                 const db = this.mongoClient.db(this.databaseName);
     
                 const collection = db.collection(collectionName);
@@ -57,7 +55,6 @@ export class MonogDbOperations {
                     resolve(err);
                     return;
                 }
-                console.log("Connected successfully to server");
     
                 const db = this.mongoClient.db(this.databaseName);
     
@@ -70,7 +67,7 @@ export class MonogDbOperations {
                     }
     
                     // DEBUGGING:
-                    console.log(JSON.stringify(result, null, 4));
+                    // console.log(JSON.stringify(result, null, 4));
     
                     resolve(data);
                     this.mongoClient.close();

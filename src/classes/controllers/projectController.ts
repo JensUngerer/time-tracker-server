@@ -12,7 +12,6 @@ export default {
         return mongoDbOperations.insertOne(project, routes.projectsCollectionName);
     },
     get(req: Request): Promise<any> {
-        console.error('projects get');
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
         mongoDbOperations.prepareConnection();
         

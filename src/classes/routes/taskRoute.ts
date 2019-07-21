@@ -11,7 +11,6 @@ const postTask = async (req: Request, res: Response) => {
 };
 
 const getTask = async (req: Request, res: Response) => {
-    console.error('getTask');
     const response = await taskController.get(req);
 
     res.json(response);

@@ -11,7 +11,6 @@ const postProject = async (req: Request, res: Response) => {
 };
 
 const getProject = async (req: Request, res: Response) => {
-    console.error('getProject');
     const response = await projectController.get(req);
 
     res.json(response);
