@@ -16,7 +16,14 @@ const getProject = async (req: Request, res: Response) => {
     res.json(response);
 };
 
+const patchProject = async (req: Request, res: Response) => {
+    const response = await projectController.patch(req);
+
+    res.json(response);
+};
+
 const rootRoute = router.route('/');
 rootRoute.post(asyncHandler(postProject));
 rootRoute.get(asyncHandler(getProject));
+rootRoute.patch(asyncHandler(patchProject));
 export default router;

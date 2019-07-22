@@ -1,4 +1,4 @@
-import { MongoClient, Cursor } from 'mongodb';
+import { MongoClient, Cursor, FilterQuery } from 'mongodb';
 import * as routes from '../../../../common/typescript/routes.js';
 
 export class MonogDbOperations {
@@ -11,6 +11,42 @@ export class MonogDbOperations {
         this.databaseName = routes.databaseName;
 
         this.mongoClient = new MongoClient(this.url, { useNewUrlParser: true });
+    }
+
+    public patch(propertyName: string, propertyValue: any, collectionName: string, queryObj: FilterQuery<any>)  {
+        return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void) => {
+            this.mongoClient.connect((err: any) => {
+                if (err) {
+                    console.error(err);
+                    resolve(err);
+                    return;
+                }
+    
+                const db = this.mongoClient.db(this.databaseName);
+    
+                const collection = db.collection(collectionName);
+
+                // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
+                const updateObj: any = { $set: {}};
+                updateObj.$set[propertyName] = propertyValue;
+
+                // DEBUGGING:
+                console.error(JSON.stringify({
+                    queryObj,
+                    updateObj
+                }, null, 4));
+
+                collection.updateOne(queryObj, updateObj, (err: any, result: any) => {
+                    if(err) {
+                        console.error('update failed');
+                        resolve(err);
+                        return;
+                    }
+
+                    resolve(result);
+                });
+            });   
+        });
     }
 
     public getAll(collectionName: string): Promise<any[]> {
