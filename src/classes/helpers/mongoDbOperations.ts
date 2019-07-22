@@ -59,7 +59,13 @@ export class MonogDbOperations {
                 const db = this.mongoClient.db(this.databaseName);
     
                 const collection = db.collection(collectionName);
-                delete data._id;
+                
+                // should no longer be necessary as data _should_ not contain _id
+                if (data && data._id) {
+                    console.error('there is already an id -> returning');
+                    return;
+                }
+                
                 collection.insertOne(data, (insertError: any, result: any) => {
                     if (insertError) {
                         resolve(insertError);

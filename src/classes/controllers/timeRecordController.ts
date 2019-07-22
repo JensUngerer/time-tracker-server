@@ -10,7 +10,7 @@ export default {
 
         // console.error('controller');
         // const parsedBody = JSON.parse(req.);
-        const line: ITimeRecordsDocument = req.body[routes.timeRecordBodyProperty];
+        const line: ITimeRecordsDocumentData = req.body[routes.timeRecordBodyProperty];
         // console.error(JSON.stringify(line, null, 4));
 
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
