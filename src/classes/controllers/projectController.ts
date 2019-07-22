@@ -25,7 +25,10 @@ export default {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
         mongoDbOperations.prepareConnection();
         
-        return mongoDbOperations.getAll(routes.projectsCollectionName);
+        const filterQuery: FilterQuery<any> = {};
+        filterQuery[routes.isDeletedInClientProperty] = false;
+
+        return mongoDbOperations.getAll(routes.projectsCollectionName, filterQuery);
     },
     patch(req: Request): Promise<any> {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();

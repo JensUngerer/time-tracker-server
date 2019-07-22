@@ -49,7 +49,7 @@ export class MonogDbOperations {
         });
     }
 
-    public getAll(collectionName: string): Promise<any[]> {
+    public getAll(collectionName: string, queryObj?: FilterQuery<any>): Promise<any[]> {
         return new Promise<any>((resolve: (value: any[]) => void, reject: (value: any) => void) => {
             this.mongoClient.connect((err: any) => {
                 if (err) {
@@ -61,7 +61,15 @@ export class MonogDbOperations {
     
                 const collection = db.collection(collectionName);
                 
-                const cursor: Cursor<any> = collection.find({});
+                const retrievedFilterQuery = queryObj ? queryObj : {};
+
+                // DEBUGGING:
+                console.error(JSON.stringify({
+                    collectionName,
+                    retrievedFilterQuery
+                }, null, 4));
+
+                const cursor: Cursor<any> = collection.find(retrievedFilterQuery);
                 if (!cursor) {
                     console.error('!cursor');
                     resolve([]);
@@ -70,6 +78,9 @@ export class MonogDbOperations {
                 }
 
                 cursor.toArray().then((resolvedData: any[])=>{
+                    // DEBUGGING:
+                    console.error(JSON.stringify(resolvedData, null, 4));
+
                     resolve(resolvedData);
                     this.mongoClient.close();
                 }).catch(() => {
