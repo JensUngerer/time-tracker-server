@@ -44,13 +44,13 @@ export default {
         theQueryObj[idPropertyName] = projectId;
 
         // DEBUGGING:
-        console.error(JSON.stringify({
-            propertyName: propertyName,
-            propertyValue: propertyValue,
-            idPropertyName: idPropertyName,
-            projectId: projectId,
-            theQueryObj: theQueryObj
-        }, null, 4));
+        // console.error(JSON.stringify({
+        //     propertyName: propertyName,
+        //     propertyValue: propertyValue,
+        //     idPropertyName: idPropertyName,
+        //     projectId: projectId,
+        //     theQueryObj: theQueryObj
+        // }, null, 4));
 
         return mongoDbOperations.patch(propertyName, propertyValue, routes.projectsCollectionName, theQueryObj);
     }

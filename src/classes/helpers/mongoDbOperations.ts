@@ -31,10 +31,10 @@ export class MonogDbOperations {
                 updateObj.$set[propertyName] = propertyValue;
 
                 // DEBUGGING:
-                console.error(JSON.stringify({
-                    queryObj,
-                    updateObj
-                }, null, 4));
+                // console.error(JSON.stringify({
+                //     queryObj,
+                //     updateObj
+                // }, null, 4));
 
                 collection.updateOne(queryObj, updateObj, (err: any, result: any) => {
                     if(err) {
@@ -64,10 +64,10 @@ export class MonogDbOperations {
                 const retrievedFilterQuery = queryObj ? queryObj : {};
 
                 // DEBUGGING:
-                console.error(JSON.stringify({
-                    collectionName,
-                    retrievedFilterQuery
-                }, null, 4));
+                // console.error(JSON.stringify({
+                //     collectionName,
+                //     retrievedFilterQuery
+                // }, null, 4));
 
                 const cursor: Cursor<any> = collection.find(retrievedFilterQuery);
                 if (!cursor) {
@@ -79,7 +79,7 @@ export class MonogDbOperations {
 
                 cursor.toArray().then((resolvedData: any[])=>{
                     // DEBUGGING:
-                    console.error(JSON.stringify(resolvedData, null, 4));
+                    // console.error(JSON.stringify(resolvedData, null, 4));
 
                     resolve(resolvedData);
                     this.mongoClient.close();
