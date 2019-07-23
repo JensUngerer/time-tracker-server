@@ -25,5 +25,21 @@ export default {
         filterQuery[routes.isDeletedInClientProperty] = false;
       
         return mongoDbOperations.getFiltered(routes.tasksCollectionName, filterQuery);
+    },
+    patch(req: Request): Promise<any>  {
+        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
+        mongoDbOperations.prepareConnection();
+
+        const propertyName = req.body[routes.httpPatchIdPropertyToUpdateName]; // 'isDeletedInClient';
+        const propertyValue = req.body[routes.httpPatchIdPropertyToUpdateValue]; //true;
+        const idPropertyName = req.body[routes.httpPatchIdPropertyName];
+        const projectId = req.body[routes.httpPatchIdPropertyValue];
+
+        // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
+        const theQueryObj: FilterQuery<any>  = { };
+        theQueryObj[idPropertyName] = projectId;
+
+        const collectionName = routes.tasksCollectionName;
+        return mongoDbOperations.patch(propertyName, propertyValue, collectionName, theQueryObj);
     }
 };

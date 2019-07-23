@@ -16,7 +16,14 @@ const getTask = async (req: Request, res: Response) => {
     res.json(response);
 };
 
+const patchTask = async (req: Request, res: Response) => {
+    const response = await taskController.patch(req);
+
+    res.json(response);
+};
+
 const rootRoute = router.route('/');
 rootRoute.post(asyncHandler(postTask));
 rootRoute.get(asyncHandler(getTask));
+rootRoute.patch(asyncHandler(patchTask));
 export default router;
