@@ -49,7 +49,7 @@ export class MonogDbOperations {
         });
     }
 
-    public getAll(collectionName: string, queryObj?: FilterQuery<any>): Promise<any[]> {
+    public getFiltered(collectionName: string, queryObj?: FilterQuery<any>): Promise<any[]> {
         return new Promise<any>((resolve: (value: any[]) => void, reject: (value: any) => void) => {
             this.mongoClient.connect((err: any) => {
                 if (err) {

@@ -28,7 +28,7 @@ export default {
         const filterQuery: FilterQuery<any> = {};
         filterQuery[routes.isDeletedInClientProperty] = false;
 
-        return mongoDbOperations.getAll(routes.projectsCollectionName, filterQuery);
+        return mongoDbOperations.getFiltered(routes.projectsCollectionName, filterQuery);
     },
     patch(req: Request): Promise<any> {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
