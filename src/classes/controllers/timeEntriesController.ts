@@ -1,3 +1,5 @@
+import { RequestProcessingHelpers } from './../helpers/requestProcessingHelpers';
+import { TimeManagement } from './../helpers/timeManagement';
 import { FilterQuery } from 'mongodb';
 import { Request } from 'express';
 import { ITimeEntry } from './../../../../common/typescript/iTimeEntry';
@@ -17,54 +19,89 @@ export default {
         const extendedTimeEntry: ITimeEntryDocument = _.clone(timeEntry) as ITimeEntryDocument;
         extendedTimeEntry.isDeletedInClient = false;
         extendedTimeEntry.startTime = new Date(extendedTimeEntry.startTime) as Date;
-        console.log(typeof(extendedTimeEntry.startTime))
+        console.log(typeof (extendedTimeEntry.startTime))
 
         return mongoDbOperations.insertOne(extendedTimeEntry, routesConfig.timEntriesCollectionName);
     },
-    get(req: Request): Promise<any> {
+    get(req: Request, filterQuery?: FilterQuery<any>): Promise<any> {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
         mongoDbOperations.prepareConnection();
 
-        const queryObj: FilterQuery<any> = {};
-        queryObj[routesConfig.isDeletedInClientProperty] = false;
+        if (!filterQuery) {
+            const queryObj: FilterQuery<any> = {};
+            queryObj[routesConfig.isDeletedInClientProperty] = false;
 
-
-        return mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, queryObj);
+            return mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, queryObj);
+        } else {
+            return mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, filterQuery);
+        }
     },
     patchStop(req: Request): Promise<any> {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
         mongoDbOperations.prepareConnection();
 
         // stop operation
-        
-        const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
-        const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
-        // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
-        const theQueryObj: FilterQuery<any>  = {};
-        theQueryObj[idPropertyName] = timeEntryId;
+        // const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
+        // const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
+        // // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
+        // const theQueryObj: FilterQuery<any> = {};
+        // theQueryObj[idPropertyName] = timeEntryId;
+        const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
 
         let propertyName = routesConfig.endDateProperty;
         let propertyValue: any = new Date();
-        
+
         const firstPatchPromise = mongoDbOperations.patch(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
 
-        return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void)=>{
-            firstPatchPromise.then((resolvedValue: any)=>{
-                // TODO: in a later version: the duration between the timeStamps should be calculated in here
+        return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void) => {
+            firstPatchPromise.then((resolvedValue: any) => {
                 resolve(resolvedValue);
-                
-                // propertyName = routesConfig.durationProperty;
-                // propertyValue = null;
-                // const secondPatchPromise = mongoDbOperations.patch(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
-                // secondPatchPromise.then(resolve);
-                // secondPatchPromise.catch(resolve);
             });
-            firstPatchPromise.catch(()=>{
-                const errMsg = 'catch when trying to patch the endDate in a timeEntry:' + timeEntryId; 
+            firstPatchPromise.catch(() => {
+                const errMsg = 'catch when trying to patch the endDate in a timeEntry:' + theQueryObj[req.body[routesConfig.httpPatchIdPropertyName]];
                 console.error(errMsg);
                 reject(errMsg);
             });
         });
+    },
+    patchTheDurationInTimeEntriesDocument(theSuccessfullyPatchDocumentsFromDB: ITimeEntryDocument[], req: Request): Promise<any> {
+        return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void) => {
+            const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
+            mongoDbOperations.prepareConnection();
+
+            const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
+
+            // const theSuccessfullyPatchDocumentFromDBPromise = mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, theQueryObj);
+            // theSuccessfullyPatchDocumentFromDBPromise.then((theSuccessfullyPatchDocumentsFromDB: ITimeEntryDocument[]) => {
+            if (!theSuccessfullyPatchDocumentsFromDB || theSuccessfullyPatchDocumentsFromDB.length === 0) {
+                console.error('cannot write the duration because retrieval of document failed');
+                console.error(JSON.stringify(theSuccessfullyPatchDocumentsFromDB, null, 4));
+                resolve(false);
+                return;
+            }
+
+            const singleDoc = theSuccessfullyPatchDocumentsFromDB[0];
+
+            // DEBUGGING:
+            // if (typeof singleDoc.startTime === 'string') {
+            //     console.error('starTime is string and not date!');
+            // }
+            // if (typeof singleDoc.endTime === 'string') {
+            //     console.error('endTime is string and  not date');
+            // }
+
+            const propertyName = routesConfig.durationProperty;
+            const propertyValue = TimeManagement.timeEntryToDuration(singleDoc);
+
+            // DEBUGGING:
+            // console.error(JSON.stringify(propertyValue, null, 4));
+            // console.error(JSON.stringify(singleDoc, null, 4));
+
+            const patchPromiseForWritingTheDuration = mongoDbOperations.patch(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
+            patchPromiseForWritingTheDuration.then(resolve);
+            patchPromiseForWritingTheDuration.catch(resolve);
+        });
+        // });
     },
     patchDeletedInClient(req: Request): Promise<any> {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
@@ -73,7 +110,7 @@ export default {
         const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
         const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
         // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
-        const theQueryObj: FilterQuery<any>  = {};
+        const theQueryObj: FilterQuery<any> = {};
         theQueryObj[idPropertyName] = timeEntryId;
 
         const propertyName = routesConfig.isDeletedInClientProperty;
@@ -88,7 +125,7 @@ export default {
         const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
         const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
         // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
-        const theQueryObj: FilterQuery<any>  = {};
+        const theQueryObj: FilterQuery<any> = {};
         theQueryObj[idPropertyName] = timeEntryId;
 
         const propertyName = routesConfig.pausesProperty;
@@ -100,16 +137,24 @@ export default {
 
         return mongoDbOperations.patchPush(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
     },
-    patchPause(req: Request): Promise<any> {
+    patchPause(req: Request, documents: ITimeEntryDocument[]): Promise<any> {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
         mongoDbOperations.prepareConnection();
 
-        const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
-        const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
-        // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
-        const theQueryObj: FilterQuery<any>  = {};
-        theQueryObj[idPropertyName] = timeEntryId;
+        // const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
+        // const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
+        // // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
+        // const theQueryObj: FilterQuery<any> = {};
+        // theQueryObj[idPropertyName] = timeEntryId;
+        const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
 
-        return mongoDbOperations.patchLastTimeEntryPause(theQueryObj);
+        return mongoDbOperations.patchLastTimeEntryPause(theQueryObj, documents);
+    },
+    doSomething(filterQuery: FilterQuery<any>, documents: ITimeEntryDocument[]) {
+        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
+        mongoDbOperations.prepareConnection();
+
+        const storeDurationsInPausesPromise = mongoDbOperations.storeDurationInPausesOfDocument(filterQuery, documents);
+        return storeDurationsInPausesPromise;
     }
 }
