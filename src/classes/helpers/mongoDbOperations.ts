@@ -1,5 +1,6 @@
 import { MongoClient, Cursor, FilterQuery } from 'mongodb';
 import * as routes from '../../../../common/typescript/routes.js';
+import { ITimeEntryDocument } from '../../../../common/typescript/mongoDB/iTimeEntryDocument.js';
 
 export class MonogDbOperations {
     private mongoClient: MongoClient = null;
@@ -13,7 +14,7 @@ export class MonogDbOperations {
         this.mongoClient = new MongoClient(this.url, { useNewUrlParser: true });
     }
 
-    public patch(propertyName: string, propertyValue: any, collectionName: string, queryObj: FilterQuery<any>)  {
+    public patchPush(propertyName: string, propertyValue: any, collectionName: string, queryObj: FilterQuery<any>) {
         return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void) => {
             this.mongoClient.connect((err: any) => {
                 if (err) {
@@ -21,13 +22,110 @@ export class MonogDbOperations {
                     resolve(err);
                     return;
                 }
-    
+
                 const db = this.mongoClient.db(this.databaseName);
-    
+
+                const collection = db.collection(collectionName);
+
+                const updateObj: any = { $push: {} };
+                updateObj.$push[propertyName] = propertyValue;
+
+                // // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
+
+                // // DEBUGGING:
+                // console.error(JSON.stringify({
+                //     queryObj,
+                //     updateObj
+                // }, null, 4));
+
+                collection.updateOne(queryObj, updateObj, (err: any, result: any) => {
+                    if (err) {
+                        console.error('update failed');
+                        resolve(err);
+                        return;
+                    }
+
+                    this.mongoClient.close();
+                    resolve(result);
+                });
+            });
+        });
+    }
+
+    public patchLastTimeEntryPause(queryObj: FilterQuery<any>) {
+        const collectionName: string = routes.timEntriesCollectionName;
+        return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void) => {
+            this.mongoClient.connect((err: any) => {
+                if (err) {
+                    console.error(err);
+                    resolve(err);
+                    return;
+                }
+
+                const db = this.mongoClient.db(this.databaseName);
+
+                const storedDocumentPromise: Promise<any[]> = this.getFiltered(collectionName, queryObj);
+                storedDocumentPromise.then((resolveDoc: any[]) => {
+                    if (!resolveDoc || resolveDoc.length === 0) {
+                        console.error('no document found which could be patched');
+                        return;
+                    }
+                    const singleDoc = resolveDoc[0] as ITimeEntryDocument;
+                    const pausesArray = singleDoc.pauses;
+                    if (!pausesArray || pausesArray.length === 0) {
+                        console.error('cannot use pauses array');
+                        return;
+                    }
+
+                    const currentPauseObject = pausesArray[pausesArray.length - 1];
+                    currentPauseObject.endTime = new Date();
+
+                    // overwrite the entire pausesArray
+
+                    const collection = db.collection(collectionName);
+
+                    const propertyName = routes.pausesProperty;
+                    // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
+                    const updateObj: any = { $set: {} };
+                    updateObj.$set[propertyName] = pausesArray;
+
+                    // DEBUGGING:
+                    console.error(JSON.stringify({
+                        queryObj,
+                        updateObj
+                    }, null, 4));
+
+                    collection.updateOne(queryObj, updateObj, (err: any, result: any) => {
+                        if (err) {
+                            console.error('update failed');
+                            resolve(err);
+                            return;
+                        }
+
+                        this.mongoClient.close();
+                        resolve(result);
+                    });
+                });
+            });
+
+        });
+    }
+
+    public patch(propertyName: string, propertyValue: any, collectionName: string, queryObj: FilterQuery<any>) {
+        return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void) => {
+            this.mongoClient.connect((err: any) => {
+                if (err) {
+                    console.error(err);
+                    resolve(err);
+                    return;
+                }
+
+                const db = this.mongoClient.db(this.databaseName);
+
                 const collection = db.collection(collectionName);
 
                 // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
-                const updateObj: any = { $set: {}};
+                const updateObj: any = { $set: {} };
                 updateObj.$set[propertyName] = propertyValue;
 
                 // DEBUGGING:
@@ -37,15 +135,16 @@ export class MonogDbOperations {
                 // }, null, 4));
 
                 collection.updateOne(queryObj, updateObj, (err: any, result: any) => {
-                    if(err) {
+                    if (err) {
                         console.error('update failed');
                         resolve(err);
                         return;
                     }
 
+                    this.mongoClient.close();
                     resolve(result);
                 });
-            });   
+            });
         });
     }
 
@@ -58,9 +157,9 @@ export class MonogDbOperations {
                     return;
                 }
                 const db = this.mongoClient.db(this.databaseName);
-    
+
                 const collection = db.collection(collectionName);
-                
+
                 const retrievedFilterQuery = queryObj ? queryObj : {};
 
                 // DEBUGGING:
@@ -77,7 +176,7 @@ export class MonogDbOperations {
                     return;
                 }
 
-                cursor.toArray().then((resolvedData: any[])=>{
+                cursor.toArray().then((resolvedData: any[]) => {
                     // DEBUGGING:
                     // console.error(JSON.stringify(resolvedData, null, 4));
 
@@ -88,10 +187,10 @@ export class MonogDbOperations {
                     this.mongoClient.close();
                 });
             });
-        });   
+        });
     }
-    
-    public insertOne(data: any, collectionName: string) {        
+
+    public insertOne(data: any, collectionName: string) {
         // https://mongodb.github.io/node-mongodb-native/
         // https://mongodb.github.io/node-mongodb-native/3.2/
 
@@ -102,30 +201,30 @@ export class MonogDbOperations {
                     resolve(err);
                     return;
                 }
-    
+
                 const db = this.mongoClient.db(this.databaseName);
-    
+
                 const collection = db.collection(collectionName);
-                
+
                 // should no longer be necessary as data _should_ not contain _id
                 if (data && data._id) {
                     console.error('there is already an id -> returning');
                     return;
                 }
-                
+
                 collection.insertOne(data, (insertError: any, result: any) => {
                     if (insertError) {
                         resolve(insertError);
                         return;
                     }
-    
+
                     // DEBUGGING:
                     // console.log(JSON.stringify(result, null, 4));
-    
+
                     resolve(data);
                     this.mongoClient.close();
                 });
-            });   
-        });   
+            });
+        });
     }
 }

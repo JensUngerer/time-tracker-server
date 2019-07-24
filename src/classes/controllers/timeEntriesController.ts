@@ -5,6 +5,7 @@ import routesConfig from './..&../../../../../../common/typescript/routes.js';
 import { MonogDbOperations } from '../helpers/mongoDbOperations';
 import { ITimeEntryDocument } from './../../../../common/typescript/mongoDB/iTimeEntryDocument';
 import _ from 'lodash';
+import { IPause } from '../../../../common/typescript/iPause';
 
 export default {
     post(req: Request): Promise<any> {
@@ -79,5 +80,36 @@ export default {
         const propertyValue = true;
 
         return mongoDbOperations.patch(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
+    },
+    postPause(req: Request): Promise<any> {
+        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
+        mongoDbOperations.prepareConnection();
+
+        const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
+        const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
+        // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
+        const theQueryObj: FilterQuery<any>  = {};
+        theQueryObj[idPropertyName] = timeEntryId;
+
+        const propertyName = routesConfig.pausesProperty;
+        const propertyValue: IPause = {
+            startTime: new Date(),
+            endTime: null,
+            duration: null
+        };
+
+        return mongoDbOperations.patchPush(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
+    },
+    patchPause(req: Request): Promise<any> {
+        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
+        mongoDbOperations.prepareConnection();
+
+        const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
+        const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
+        // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
+        const theQueryObj: FilterQuery<any>  = {};
+        theQueryObj[idPropertyName] = timeEntryId;
+
+        return mongoDbOperations.patchLastTimeEntryPause(theQueryObj);
     }
 }
