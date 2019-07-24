@@ -15,6 +15,8 @@ export default {
 
         const extendedTimeEntry: ITimeEntryDocument = _.clone(timeEntry) as ITimeEntryDocument;
         extendedTimeEntry.isDeletedInClient = false;
+        extendedTimeEntry.startTime = new Date(extendedTimeEntry.startTime) as Date;
+        console.log(typeof(extendedTimeEntry.startTime))
 
         return mongoDbOperations.insertOne(extendedTimeEntry, routesConfig.timEntriesCollectionName);
     },
@@ -28,20 +30,53 @@ export default {
 
         return mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, queryObj);
     },
-    patch(req: Request): Promise<any> {
+    patchStop(req: Request): Promise<any> {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
         mongoDbOperations.prepareConnection();
 
-
-
-        const propertyName = req.body[routesConfig.httpPatchIdPropertyToUpdateName];
-        const propertyValue = req.body[routesConfig.httpPatchIdPropertyToUpdateValue];
+        // stop operation
+        
         const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
         const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
-
         // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
         const theQueryObj: FilterQuery<any>  = {};
         theQueryObj[idPropertyName] = timeEntryId;
+
+        let propertyName = routesConfig.endDateProperty;
+        let propertyValue: any = new Date();
+        
+        const firstPatchPromise = mongoDbOperations.patch(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
+
+        return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void)=>{
+            firstPatchPromise.then((resolvedValue: any)=>{
+                // TODO: in a later version: the duration between the timeStamps should be calculated in here
+                resolve(resolvedValue);
+                
+                // propertyName = routesConfig.durationProperty;
+                // propertyValue = null;
+                // const secondPatchPromise = mongoDbOperations.patch(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
+                // secondPatchPromise.then(resolve);
+                // secondPatchPromise.catch(resolve);
+            });
+            firstPatchPromise.catch(()=>{
+                const errMsg = 'catch when trying to patch the endDate in a timeEntry:' + timeEntryId; 
+                console.error(errMsg);
+                reject(errMsg);
+            });
+        });
+    },
+    patchDeletedInClient(req: Request): Promise<any> {
+        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
+        mongoDbOperations.prepareConnection();
+
+        const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
+        const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
+        // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
+        const theQueryObj: FilterQuery<any>  = {};
+        theQueryObj[idPropertyName] = timeEntryId;
+
+        const propertyName = routesConfig.isDeletedInClientProperty;
+        const propertyValue = true;
 
         return mongoDbOperations.patch(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
     }

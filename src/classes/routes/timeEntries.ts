@@ -4,6 +4,8 @@ import express, { Request, Response } from 'express';
 
 import timeEntriesController from './../controllers/timeEntriesController';
 
+import routesConfig from './../../../../common/typescript/routes.js';
+
 const router = express.Router();
 
 const getTimeEntries = async (req: Request, res: Response) => {
@@ -18,8 +20,14 @@ const postTimeEntries = async (req: Request, res: Response) => {
     res.json(response);
 };
 
-const patchTimeEntries = async (req: Request, res: Response) => {
-    const response = await timeEntriesController.patch(req);
+const patchTimeEntriesStop = async (req: Request, res: Response) => {
+    const response = await timeEntriesController.patchStop(req);
+
+    res.json(response);
+};
+
+const patchTimeEntriesDelete = async (req: Request, res: Response) => {
+    const response = await timeEntriesController.patchDeletedInClient(req);
 
     res.json(response);
 };
@@ -27,6 +35,9 @@ const patchTimeEntries = async (req: Request, res: Response) => {
 const rootRoute = router.route('/');
 rootRoute.get(asyncHandler(getTimeEntries));
 rootRoute.post(asyncHandler(postTimeEntries));
-rootRoute.patch(asyncHandler(patchTimeEntries));
+const stopRoute = router.route(routesConfig.timeEntriesStopPathSuffix);
+stopRoute.patch(asyncHandler(patchTimeEntriesStop));
+const deleteRoute = router.route(routesConfig.timeEntriesDeletePathSuffix);
+deleteRoute.patch(asyncHandler(patchTimeEntriesDelete));
 
 export default router;
