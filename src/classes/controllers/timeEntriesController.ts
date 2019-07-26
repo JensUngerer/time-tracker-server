@@ -19,7 +19,9 @@ export default {
         const extendedTimeEntry: ITimeEntryDocument = _.clone(timeEntry) as ITimeEntryDocument;
         extendedTimeEntry.isDeletedInClient = false;
         extendedTimeEntry.startTime = new Date(extendedTimeEntry.startTime) as Date;
-        console.log(typeof (extendedTimeEntry.startTime))
+        
+        // DEBUGGING string or object === date-object?
+        // console.log(typeof (extendedTimeEntry.startTime))
 
         return mongoDbOperations.insertOne(extendedTimeEntry, routesConfig.timEntriesCollectionName);
     },
@@ -41,11 +43,6 @@ export default {
         mongoDbOperations.prepareConnection();
 
         // stop operation
-        // const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
-        // const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
-        // // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
-        // const theQueryObj: FilterQuery<any> = {};
-        // theQueryObj[idPropertyName] = timeEntryId;
         const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
 
         let propertyName = routesConfig.endDateProperty;
@@ -69,10 +66,6 @@ export default {
             const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
             mongoDbOperations.prepareConnection();
 
-            const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
-
-            // const theSuccessfullyPatchDocumentFromDBPromise = mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, theQueryObj);
-            // theSuccessfullyPatchDocumentFromDBPromise.then((theSuccessfullyPatchDocumentsFromDB: ITimeEntryDocument[]) => {
             if (!theSuccessfullyPatchDocumentsFromDB || theSuccessfullyPatchDocumentsFromDB.length === 0) {
                 console.error('cannot write the duration because retrieval of document failed');
                 console.error(JSON.stringify(theSuccessfullyPatchDocumentsFromDB, null, 4));
@@ -97,11 +90,13 @@ export default {
             // console.error(JSON.stringify(propertyValue, null, 4));
             // console.error(JSON.stringify(singleDoc, null, 4));
 
+            
+            const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
+
             const patchPromiseForWritingTheDuration = mongoDbOperations.patch(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
             patchPromiseForWritingTheDuration.then(resolve);
             patchPromiseForWritingTheDuration.catch(resolve);
         });
-        // });
     },
     patchDeletedInClient(req: Request): Promise<any> {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
