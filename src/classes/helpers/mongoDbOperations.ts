@@ -55,16 +55,16 @@ export class MonogDbOperations {
     }
 
     public patchLastTimeEntryPause(queryObj: FilterQuery<any>, storedDocuments: any[]) {
-        const collectionName: string = routes.timEntriesCollectionName;
+        // const collectionName: string = routes.timEntriesCollectionName;
         return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void) => {
-            this.mongoClient.connect((err: any) => {
-                if (err) {
-                    console.error(err);
-                    resolve(err);
-                    return;
-                }
+            // this.mongoClient.connect((err: any) => {
+            //     if (err) {
+            //         console.error(err);
+            //         resolve(err);
+            //         return;
+            //     }
 
-                const db = this.mongoClient.db(this.databaseName);
+            //     const db = this.mongoClient.db(this.databaseName);
 
                 // const storedDocumentPromise: Promise<any[]> = this.getFiltered(collectionName, queryObj);
                 // storedDocumentPromise.then((resolveDoc: any[]) => {
@@ -84,35 +84,39 @@ export class MonogDbOperations {
                 const currentPauseObject = pausesArray[pausesArray.length - 1];
                 currentPauseObject.endTime = new Date();
 
+                const patchPromise = this.patchDurationsArrayInTimeEntry(pausesArray, queryObj);
+                patchPromise.then(resolve);
+                patchPromise.catch(reject);
+
                 // overwrite the entire pausesArray
 
-                const collection = db.collection(collectionName);
+                // const collection = db.collection(collectionName);
 
-                const propertyName = routes.pausesProperty;
-                // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
-                const updateObj: any = { $set: {} };
-                updateObj.$set[propertyName] = pausesArray;
+                // const propertyName = routes.pausesProperty;
+                // // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
+                // const updateObj: any = { $set: {} };
+                // updateObj.$set[propertyName] = pausesArray;
 
-                // DEBUGGING:
-                // console.error(JSON.stringify({
-                //     queryObj,
-                //     updateObj
-                // }, null, 4));
+                // // DEBUGGING:
+                // // console.error(JSON.stringify({
+                // //     queryObj,
+                // //     updateObj
+                // // }, null, 4));
 
-                collection.updateOne(queryObj, updateObj, (err: any, result: any) => {
-                    if (err) {
-                        console.error('update failed');
-                        resolve(err);
-                        return;
-                    }
+                // collection.updateOne(queryObj, updateObj, (err: any, result: any) => {
+                //     if (err) {
+                //         console.error('update failed');
+                //         resolve(err);
+                //         return;
+                //     }
 
-                    this.mongoClient.close();
+                //     this.mongoClient.close();
 
-                    resolve(result);
-                    // storeDurationsInPausesPromise.then(resolve);
-                    // storeDurationsInPausesPromise.catch(reject);
-                });
-            });
+                //     resolve(result);
+                //     // storeDurationsInPausesPromise.then(resolve);
+                //     // storeDurationsInPausesPromise.catch(reject);
+                // });
+            // });
         });
 
         // });

@@ -94,12 +94,21 @@ const postPauseTimeEntry = async (req: Request, res: Response) => {
  * 3)
  * HTTP-PATCH /NodeJS/timeEntries + '/pause' -> the timeEntries document will be updated via a overwriting with a 'patched' pauses-array
  * 
- * a) 
+ * a) the current (single!) document is retrieved from the db
+ * b) the endTime property is set in this object (of type IPause) -> and again written to the DB!?!
+ * c) so the currently updated document is retrieved from the db (again!)
+ * d) calculate the duration of the (last!?!) entry ?
+ * e) overwrite the entire pauses array with a so 'patched' pauses array
+ * 
+ * IDEA:
+ * reading and writing should be minimized to one operation for each !?!
+ * 
  * 
  * @param req 
  * @param res 
  */
 const patchPauseTimeEntry = async (req: Request, res: Response) => {
+    // a)
     const filterQuery = RequestProcessingHelpers.getFilerQuery(req);
     const storedDocuments = await timeEntriesController.get(req, filterQuery);
 
@@ -107,26 +116,29 @@ const patchPauseTimeEntry = async (req: Request, res: Response) => {
     // console.error(JSON.stringify(storedDocuments, null, 4));
     // console.error('the storedDocuments');
 
+    // b)
     const response = await timeEntriesController.patchPause(req, storedDocuments);
 
     // // DEBUGGING:
     // console.error(JSON.stringify(response, null, 4));
     // console.error('calling doSomething');
 
+    // c)
     const anotherTimeTheStoredDocuments = await timeEntriesController.get(req, filterQuery);
 
 
     // DEBUGGING:
-    console.error(JSON.stringify(anotherTimeTheStoredDocuments, null, 4));
-    console.error('calling do something');
+    // console.error(JSON.stringify(anotherTimeTheStoredDocuments, null, 4));
+    // console.error('calling do something');
 
-    const doSomethingResponse = await timeEntriesController.doSomething(filterQuery, anotherTimeTheStoredDocuments);
+    // d) and e)
+    const doSomethingResponse = await timeEntriesController.calculatePauseAndRewriteArrayToDocument(filterQuery, anotherTimeTheStoredDocuments);
 
     // DEBUGGING:
-    console.error('doSomethingResponse');
-    console.error(JSON.stringify(doSomethingResponse, null, 4));
+    // console.error('doSomethingResponse');
+    // console.error(JSON.stringify(doSomethingResponse, null, 4));
 
-    res.json(response);
+    res.json(doSomethingResponse);
 };
 
 const rootRoute = router.route('/');

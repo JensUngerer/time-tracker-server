@@ -117,11 +117,7 @@ export default {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
         mongoDbOperations.prepareConnection();
 
-        const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
-        const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
-        // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
-        const theQueryObj: FilterQuery<any> = {};
-        theQueryObj[idPropertyName] = timeEntryId;
+        const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
 
         const propertyName = routesConfig.pausesProperty;
         const propertyValue: IPause = {
@@ -136,16 +132,11 @@ export default {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
         mongoDbOperations.prepareConnection();
 
-        // const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
-        // const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
-        // // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
-        // const theQueryObj: FilterQuery<any> = {};
-        // theQueryObj[idPropertyName] = timeEntryId;
         const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
 
         return mongoDbOperations.patchLastTimeEntryPause(theQueryObj, documents);
     },
-    doSomething(filterQuery: FilterQuery<any>, documents: ITimeEntryDocument[]) {
+    calculatePauseAndRewriteArrayToDocument(filterQuery: FilterQuery<any>, documents: ITimeEntryDocument[]) {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
         mongoDbOperations.prepareConnection();
 
