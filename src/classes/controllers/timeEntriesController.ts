@@ -1,3 +1,4 @@
+import { MongoDbLogic } from './../helpers/mongoDbLogic';
 import { RequestProcessingHelpers } from './../helpers/requestProcessingHelpers';
 import { TimeManagement } from './../helpers/timeManagement';
 import { FilterQuery } from 'mongodb';
@@ -131,16 +132,18 @@ export default {
     patchPause(req: Request, documents: ITimeEntryDocument[]): Promise<any> {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
         mongoDbOperations.prepareConnection();
+        const mongoDbLogic = new MongoDbLogic(mongoDbOperations);
 
         const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
 
-        return mongoDbOperations.patchLastTimeEntryPause(theQueryObj, documents);
+        return mongoDbLogic.patchLastTimeEntryPause(theQueryObj, documents);
     },
     calculatePauseAndRewriteArrayToDocument(filterQuery: FilterQuery<any>, documents: ITimeEntryDocument[]) {
         const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
         mongoDbOperations.prepareConnection();
+        const mongoDbLogic = new MongoDbLogic(mongoDbOperations);
 
-        const storeDurationsInPausesPromise = mongoDbOperations.storeDurationInPausesOfDocument(filterQuery, documents);
+        const storeDurationsInPausesPromise = mongoDbLogic.storeDurationInPausesOfDocument(filterQuery, documents);
         return storeDurationsInPausesPromise;
     }
 }
