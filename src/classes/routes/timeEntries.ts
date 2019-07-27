@@ -100,9 +100,6 @@ const postPauseTimeEntry = async (req: Request, res: Response) => {
  * d) calculate the duration of the (last!?!) entry ?
  * e) overwrite the entire pauses array with a so 'patched' pauses array
  * 
- * IDEA:
- * reading and writing should be minimized to one operation for each !?!
- * 
  * 
  * @param req 
  * @param res 
