@@ -1,7 +1,23 @@
 import { ITimeEntryDocument } from "../../../../common/typescript/mongoDB/iTimeEntryDocument";
 import { IPause } from "../../../../common/typescript/iPause";
+import { IDuration } from "../../../../common/typescript/iDuration";
 
 export class DurationCalculator {
+
+    public static getSumDataStructureFromMilliseconds(milliseconds: number): IDuration {
+        milliseconds = Math.floor(milliseconds / 1000);
+        const seconds = milliseconds % 60;
+        milliseconds = Math.floor(milliseconds / 60);
+        const minutes = milliseconds % 60;
+        milliseconds = Math.floor(milliseconds / 60);
+        const hours = milliseconds % 60;
+
+        return {
+            hours,
+            minutes,
+            seconds
+        };
+    }
 
     public static calculateTimeDifferenceWithoutPauses(timeEntry: ITimeEntryDocument): number {
         let pausesDuration = 0;
@@ -39,13 +55,14 @@ export class DurationCalculator {
         // DEBUGGING:
         // console.error('milliseconds:' + milliseconds / 1000);
         
-        milliseconds = Math.floor(milliseconds / 1000);
-        const seconds = milliseconds % 60;
-        milliseconds = Math.floor(milliseconds / 60);
-        const minutes = milliseconds % 60;
-        milliseconds = Math.floor(milliseconds / 60);
-        const hours = milliseconds % 60;
-        return DurationCalculator.getFullDurationStr(hours, minutes, seconds);
+        // milliseconds = Math.floor(milliseconds / 1000);
+        // const seconds = milliseconds % 60;
+        // milliseconds = Math.floor(milliseconds / 60);
+        // const minutes = milliseconds % 60;
+        // milliseconds = Math.floor(milliseconds / 60);
+        // const hours = milliseconds % 60;
+        const duration = DurationCalculator.getSumDataStructureFromMilliseconds(milliseconds);
+        return DurationCalculator.getFullDurationStr(duration.hours, duration.minutes, duration.seconds);
     }
 
     public static ensureTwoDigits(aNumber: number): string {

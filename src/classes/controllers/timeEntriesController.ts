@@ -10,10 +10,69 @@ import { ITimeEntryDocument } from './../../../../common/typescript/mongoDB/iTim
 import _ from 'lodash';
 import { IPause } from '../../../../common/typescript/iPause';
 import { DurationCalculator } from '../helpers/durationCalculator';
+import { ITasksDocument } from '../../../../common/typescript/mongoDB/iTasksDocument';
 
 export default {
+    getTimeEntriesForTaskIds(taskIds: string[], mongoDbOperations: MonogDbOperations) {
+        if (!taskIds || taskIds.length === 0) {
+            console.error('cannot get timeEntries because of missing taskIds');
+        }
+        return new Promise<any>((resolve: (value: any) => void) => {
+            let timeEntries: ITimeEntryDocument[] = [];
+            let taskIdIndex = 0;
+            const promiseThenLoop = ()=>{
+                if (taskIdIndex < taskIds.length) {
+                    const queryObj: FilterQuery<any> = {};
+                    queryObj[routesConfig.taskIdPropertyAsForeignKey] = taskIds[taskIdIndex];
+                
+                    const promise = mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, queryObj);
+                    promise.then((retrievedTimeEntries: ITimeEntryDocument[])=>{
+                        timeEntries = timeEntries.concat(retrievedTimeEntries);
+
+                        taskIdIndex++;
+                        promiseThenLoop();
+                    });
+                    promise.catch(()=>{
+                        console.error('something went wrong when getting the timeEntries for index:' + taskIdIndex);
+                        console.error(JSON.stringify(taskIds, null, 4));
+
+                        taskIdIndex++;
+                        promiseThenLoop();
+                    });
+                } else {
+                    resolve(timeEntries);
+                }
+            };
+            // initial call
+            promiseThenLoop();
+        });
+    },
+    getTaskIdsForProjectId(projectId: string,  mongoDbOperations: MonogDbOperations) {
+        const queryObj: FilterQuery<any> = {};
+        queryObj[routesConfig.projectIdPropertyAsForeignKey] = projectId;
+        const tasksPromise = mongoDbOperations.getFiltered(routesConfig.tasksCollectionName, queryObj);
+        return new Promise<any>((resolve: (value: any) => void)=>{
+            tasksPromise.then((retrievedTasks: ITasksDocument[]) => {
+                const taskIds: string[] = [];
+                if (!retrievedTasks || retrievedTasks.length === 0) {
+                    console.error('there are no tasks for projectId:' + projectId);
+                    resolve(false);
+                    return;
+                }
+                retrievedTasks.forEach((oneTask: ITasksDocument)=>{
+                    const currentTaskId = oneTask.taskId;
+                    taskIds.push(currentTaskId);
+                });
+                resolve(taskIds);
+            });
+            tasksPromise.catch(()=>{
+                console.error('error when trying to get tasks by projectId');
+                resolve(false);
+            });
+        });
+    },
     getDurationStr(timeEntryId: string, mongoDbOperations: MonogDbOperations) {
-        const queryObj: FilterQuery<any> = {}
+        const queryObj: FilterQuery<any> = {};
         queryObj[routesConfig.timeEntryIdProperty] = timeEntryId;
         const timeEntriesPromise = mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, queryObj);
         return new Promise<any>((resolve: (value: any) => void) => {

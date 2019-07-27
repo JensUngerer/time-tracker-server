@@ -1,3 +1,4 @@
+import { DurationCalculator } from './../helpers/durationCalculator';
 import { RequestProcessingHelpers } from './../helpers/requestProcessingHelpers';
 import asyncHandler from 'express-async-handler';
 
@@ -7,6 +8,7 @@ import timeEntriesController from './../controllers/timeEntriesController';
 
 import routesConfig from './../../../../common/typescript/routes.js';
 import { App } from '../../app';
+import { ITimeEntryDocument } from '../../../../common/typescript/mongoDB/iTimeEntryDocument';
 
 const router = express.Router();
 
@@ -145,6 +147,48 @@ const getDurationStr = async (req: Request, res: Response) => {
     res.json(response);
 };
 
+const getDurationSumForProjectId = async (req: Request, res: Response) => {
+    const theId = req.url.substring(req.url.lastIndexOf('/') + 1);
+    try {
+        const taskIds = await timeEntriesController.getTaskIdsForProjectId(theId, App.mongoDbOperations);
+        if (!taskIds || taskIds.length === 0) {
+            res.json(null);
+            return;
+        }
+
+        // DEBUGGING:
+        // console.error({
+        //     taskIds
+        // }, null, 4);
+
+        const timeEntries = await timeEntriesController.getTimeEntriesForTaskIds(taskIds, App.mongoDbOperations);
+        if (!timeEntries || timeEntries.length === 0) {
+            res.json(null);
+            return;
+        }
+
+        // DEBUGGING:
+        // console.error({
+        //     timeEntries
+        // }, null, 4);
+        console.error(JSON.stringify(timeEntries, null, 4));
+
+        let millisecondsSum = 0;
+        timeEntries.forEach((oneTimeEntry: ITimeEntryDocument)=>{
+            millisecondsSum += DurationCalculator.calculateTimeDifferenceWithoutPauses(oneTimeEntry);
+        });
+        // DEBUGGING:
+        console.error(millisecondsSum);
+
+        const sumDataStructure = DurationCalculator.getSumDataStructureFromMilliseconds(millisecondsSum);
+        res.json(sumDataStructure);
+    } catch (e) {
+        console.error('an exception occurred');
+        console.error(e);
+        res.json(null);
+    }
+};
+
 const rootRoute = router.route('/');
 rootRoute.get(asyncHandler(getTimeEntries));
 rootRoute.post(asyncHandler(postTimeEntries));
@@ -161,5 +205,8 @@ pauseRoute.patch(asyncHandler(patchPauseTimeEntry));
 
 const durationRoute = router.route(routesConfig.timeEntriesDurationSuffix + '/*');
 durationRoute.get(asyncHandler(getDurationStr));
+
+const durationSumRoute = router.route(routesConfig.timeEntriesDurationSumSuffix + '/*');
+durationSumRoute.get(asyncHandler(getDurationSumForProjectId));
 
 export default router;
