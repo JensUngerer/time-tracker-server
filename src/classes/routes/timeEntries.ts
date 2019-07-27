@@ -52,14 +52,14 @@ const patchTimeEntriesStop = async (req: Request, res: Response) => {
     //b)
     const filterQuery = RequestProcessingHelpers.getFilerQuery(req);
     const theDocuments: any[] = await timeEntriesController.get(req, App.mongoDbOperations, filterQuery);
-    
+
     // DEBUGGING
     // console.error(JSON.stringify(theDocuments, null, 4));
     // console.error('calling the patch-method');
-    
+
     // c) and d)
     const durationInDbResponse = await timeEntriesController.patchTheDurationInTimeEntriesDocument(App.mongoDbOperations, theDocuments, req);
-    
+
     // DEBUGGING:
     // console.error(JSON.stringify(durationInDbResponse, null, 4));
 
@@ -138,6 +138,13 @@ const patchPauseTimeEntry = async (req: Request, res: Response) => {
     res.json(doSomethingResponse);
 };
 
+const getDurationStr = (req: Request, res: Response) => {
+    // just for DEBUGGING purposes:
+    const theId = req.url.substring(req.url.lastIndexOf('/') + 1);
+    console.log(theId);
+    res.json(Math.floor(new Date().getTime() % (60 * 1000)));
+};
+
 const rootRoute = router.route('/');
 rootRoute.get(asyncHandler(getTimeEntries));
 rootRoute.post(asyncHandler(postTimeEntries));
@@ -151,5 +158,8 @@ deleteRoute.patch(asyncHandler(patchTimeEntriesDelete));
 const pauseRoute = router.route(routesConfig.timeEntryPausePathSuffix);
 pauseRoute.post(asyncHandler(postPauseTimeEntry));
 pauseRoute.patch(asyncHandler(patchPauseTimeEntry));
+
+const durationRoute = router.route(routesConfig.timeEntriesDurationSuffix + '/*');
+durationRoute.get(asyncHandler(getDurationStr));
 
 export default router;
