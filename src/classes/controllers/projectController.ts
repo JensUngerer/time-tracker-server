@@ -7,11 +7,9 @@ import { IProjectsDocument } from './../../../../common/typescript/mongoDB/iProj
 import { FilterQuery } from 'mongodb';
 
 export default {
-    post(req: Request): Promise<any> {
+    post(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
         const project: IProject = req.body[routes.projectBodyProperty];
         
-        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-        mongoDbOperations.prepareConnection();
         const extendedProject: IProjectsDocument = _.clone(project) as IProjectsDocument;
         extendedProject.isDeletedInClient = false;
         // should not be necessary
@@ -21,19 +19,13 @@ export default {
 
         return mongoDbOperations.insertOne(extendedProject, routes.projectsCollectionName);
     },
-    get(req: Request): Promise<any> {
-        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-        mongoDbOperations.prepareConnection();
-        
+    get(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
         const filterQuery: FilterQuery<any> = {};
         filterQuery[routes.isDeletedInClientProperty] = false;
 
         return mongoDbOperations.getFiltered(routes.projectsCollectionName, filterQuery);
     },
-    patch(req: Request): Promise<any> {
-        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-        mongoDbOperations.prepareConnection();
-
+    patch(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
         const propertyName = req.body[routes.httpPatchIdPropertyToUpdateName]; // 'isDeletedInClient';
         const propertyValue = req.body[routes.httpPatchIdPropertyToUpdateValue]; //true;
         const idPropertyName = req.body[routes.httpPatchIdPropertyName];

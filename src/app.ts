@@ -24,7 +24,7 @@ export class App implements IApp{
 
     private express: Application;
     private server: Server;
-    private mongoDbOperations: MonogDbOperations;
+    public static mongoDbOperations: MonogDbOperations;
 
     public constructor() {
         this.express = express();
@@ -32,12 +32,12 @@ export class App implements IApp{
     }
 
     public setupDatabaseConnection() {
-        this.mongoDbOperations = new MonogDbOperations();
-        this.mongoDbOperations.prepareConnection();
+        App.mongoDbOperations = new MonogDbOperations();
+        App.mongoDbOperations.prepareConnection();
     }
 
     public closeDataBaseConnection(): Promise<void> {
-        return this.mongoDbOperations.closeConnection();
+        return App.mongoDbOperations.closeConnection();
     }
 
     public configure(): void {

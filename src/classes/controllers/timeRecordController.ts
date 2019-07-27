@@ -4,7 +4,7 @@ import { ITimeRecordsDocument, ITimeRecordsDocumentData } from './../../../../co
 import * as routes from '../../../../common/typescript/routes.js';
 
 export default {
-    /*async*/ post(req: Request): Promise<any> {
+    /*async*/ post(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
 
         // console.error('controller: '+ JSON.stringify(req));
 
@@ -13,8 +13,6 @@ export default {
         const line: ITimeRecordsDocumentData = req.body[routes.timeRecordBodyProperty];
         // console.error(JSON.stringify(line, null, 4));
 
-        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-        mongoDbOperations.prepareConnection();
         return mongoDbOperations.insertOne(line, routes.timeRecordsCollectionName);
     }
 }

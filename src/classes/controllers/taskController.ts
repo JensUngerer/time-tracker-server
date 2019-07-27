@@ -7,29 +7,21 @@ import _ from 'lodash';
 import { FilterQuery } from 'mongodb';
 
 export default {
-    post(req: Request): Promise<any> {
+    post(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
         const task: ITask = req.body[routes.taskBodyProperty];
 
         const extendedTask: ITasksDocument = _.clone(task) as ITasksDocument;
         extendedTask.isDeletedInClient = false;
 
-        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-        mongoDbOperations.prepareConnection();
         return mongoDbOperations.insertOne(extendedTask, routes.tasksCollectionName);
     },
-    get(req: Request): Promise<any[]> {
-        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-        mongoDbOperations.prepareConnection();
-
+    get(req: Request, mongoDbOperations: MonogDbOperations): Promise<any[]> {
         const filterQuery: FilterQuery<any> = {};
         filterQuery[routes.isDeletedInClientProperty] = false;
       
         return mongoDbOperations.getFiltered(routes.tasksCollectionName, filterQuery);
     },
-    patch(req: Request): Promise<any>  {
-        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-        mongoDbOperations.prepareConnection();
-
+    patch(req: Request, mongoDbOperations: MonogDbOperations): Promise<any>  {
         const propertyName = req.body[routes.httpPatchIdPropertyToUpdateName]; // 'isDeletedInClient';
         const propertyValue = req.body[routes.httpPatchIdPropertyToUpdateValue]; //true;
         const idPropertyName = req.body[routes.httpPatchIdPropertyName];

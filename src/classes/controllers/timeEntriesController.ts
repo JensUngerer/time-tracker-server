@@ -11,25 +11,19 @@ import _ from 'lodash';
 import { IPause } from '../../../../common/typescript/iPause';
 
 export default {
-    post(req: Request): Promise<any> {
+    post(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
         const timeEntry: ITimeEntry = req.body[routesConfig.timeEntriesBodyProperty];
-
-        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-        mongoDbOperations.prepareConnection();
 
         const extendedTimeEntry: ITimeEntryDocument = _.clone(timeEntry) as ITimeEntryDocument;
         extendedTimeEntry.isDeletedInClient = false;
         extendedTimeEntry.startTime = new Date(extendedTimeEntry.startTime) as Date;
-        
+
         // DEBUGGING string or object === date-object?
         // console.log(typeof (extendedTimeEntry.startTime))
 
         return mongoDbOperations.insertOne(extendedTimeEntry, routesConfig.timEntriesCollectionName);
     },
-    get(req: Request, filterQuery?: FilterQuery<any>): Promise<any> {
-        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-        mongoDbOperations.prepareConnection();
-
+    get(req: Request, mongoDbOperations: MonogDbOperations, filterQuery?: FilterQuery<any>): Promise<any> {
         if (!filterQuery) {
             const queryObj: FilterQuery<any> = {};
             queryObj[routesConfig.isDeletedInClientProperty] = false;
@@ -39,10 +33,7 @@ export default {
             return mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, filterQuery);
         }
     },
-    patchStop(req: Request): Promise<any> {
-        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-        mongoDbOperations.prepareConnection();
-
+    patchStop(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
         // stop operation
         const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
 
@@ -62,11 +53,8 @@ export default {
             });
         });
     },
-    patchTheDurationInTimeEntriesDocument(theSuccessfullyPatchDocumentsFromDB: ITimeEntryDocument[], req: Request): Promise<any> {
+    patchTheDurationInTimeEntriesDocument(mongoDbOperations: MonogDbOperations, theSuccessfullyPatchDocumentsFromDB: ITimeEntryDocument[], req: Request): Promise<any> {
         return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void) => {
-            const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-            mongoDbOperations.prepareConnection();
-
             if (!theSuccessfullyPatchDocumentsFromDB || theSuccessfullyPatchDocumentsFromDB.length === 0) {
                 console.error('cannot write the duration because retrieval of document failed');
                 console.error(JSON.stringify(theSuccessfullyPatchDocumentsFromDB, null, 4));
@@ -91,7 +79,7 @@ export default {
             // console.error(JSON.stringify(propertyValue, null, 4));
             // console.error(JSON.stringify(singleDoc, null, 4));
 
-            
+
             const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
 
             const patchPromiseForWritingTheDuration = mongoDbOperations.patch(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
@@ -99,10 +87,7 @@ export default {
             patchPromiseForWritingTheDuration.catch(resolve);
         });
     },
-    patchDeletedInClient(req: Request): Promise<any> {
-        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-        mongoDbOperations.prepareConnection();
-
+    patchDeletedInClient(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
         const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
         const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
         // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
@@ -114,10 +99,7 @@ export default {
 
         return mongoDbOperations.patch(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
     },
-    postPause(req: Request): Promise<any> {
-        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-        mongoDbOperations.prepareConnection();
-
+    postPause(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
         const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
 
         const propertyName = routesConfig.pausesProperty;
@@ -129,18 +111,14 @@ export default {
 
         return mongoDbOperations.patchPush(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
     },
-    patchPause(req: Request, documents: ITimeEntryDocument[]): Promise<any> {
-        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-        mongoDbOperations.prepareConnection();
+    patchPause(req: Request, mongoDbOperations: MonogDbOperations, documents: ITimeEntryDocument[]): Promise<any> {
         const mongoDbLogic = new MongoDbLogic(mongoDbOperations);
 
         const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
 
         return mongoDbLogic.patchLastTimeEntryPause(theQueryObj, documents);
     },
-    calculatePauseAndRewriteArrayToDocument(filterQuery: FilterQuery<any>, documents: ITimeEntryDocument[]) {
-        const mongoDbOperations: MonogDbOperations = new MonogDbOperations();
-        mongoDbOperations.prepareConnection();
+    calculatePauseAndRewriteArrayToDocument(mongoDbOperations: MonogDbOperations, filterQuery: FilterQuery<any>, documents: ITimeEntryDocument[]) {
         const mongoDbLogic = new MongoDbLogic(mongoDbOperations);
 
         const storeDurationsInPausesPromise = mongoDbLogic.storeDurationInPausesOfDocument(filterQuery, documents);
