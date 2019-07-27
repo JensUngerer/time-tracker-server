@@ -1,18 +1,44 @@
+import { FilterQuery } from 'mongodb';
 import { MonogDbOperations } from './../helpers/mongoDbOperations';
-import { Request } from 'express';
-import { ITimeRecordsDocument, ITimeRecordsDocumentData } from './../../../../common/typescript/mongoDB/iTimeRecordsDocument';
+import { ITimeRecordsDocumentData } from './../../../../common/typescript/mongoDB/iTimeRecordsDocument';
 import * as routes from '../../../../common/typescript/routes.js';
 
 export default {
-    /*async*/ post(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
-
-        // console.error('controller: '+ JSON.stringify(req));
-
-        // console.error('controller');
-        // const parsedBody = JSON.parse(req.);
-        const line: ITimeRecordsDocumentData = req.body[routes.timeRecordBodyProperty];
-        // console.error(JSON.stringify(line, null, 4));
-
+    post(line: ITimeRecordsDocumentData, mongoDbOperations: MonogDbOperations): Promise<any> {
         return mongoDbOperations.insertOne(line, routes.timeRecordsCollectionName);
+    },
+    markTimeEntriesAsDeleted(timeEntryIds: string[], mongoDbOperations: MonogDbOperations): Promise<any> {
+        // DEBUGGING
+        console.error('timeEntryIds:' + JSON.stringify(timeEntryIds, null, 4));
+
+        return new Promise<any>((resolve: (value: any) => void) => {
+            let timeEntryIdsIndex = 0;
+            const promiseThenLoop = () => {
+                if (timeEntryIdsIndex < timeEntryIds.length) {
+                    const queryObj: FilterQuery<any> = {};
+                    queryObj[routes.timeEntryIdProperty] = timeEntryIds[timeEntryIdsIndex];
+                    queryObj[routes.isDeletedInClientProperty] = false;
+
+                    const propertyName = routes.isDeletedInClientProperty;
+                    const propertyValue = true;
+
+                    const promise = mongoDbOperations.patch(propertyName, propertyValue, routes.timEntriesCollectionName, queryObj);
+                    promise.then(() => {
+                        timeEntryIdsIndex++;
+                        promiseThenLoop();
+                    });
+                    promise.catch((reason: any) => {
+                        console.error('an patch operation rejected');
+                        console.error(reason);
+                        timeEntryIdsIndex++;
+                        promiseThenLoop();
+                    });
+                } else {
+                    resolve(true);
+                }
+            };
+            // initial call
+            promiseThenLoop();
+        });
     }
 }

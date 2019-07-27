@@ -24,6 +24,8 @@ export default {
                 if (taskIdIndex < taskIds.length) {
                     const queryObj: FilterQuery<any> = {};
                     queryObj[routesConfig.taskIdPropertyAsForeignKey] = taskIds[taskIdIndex];
+                    // NEW only use the non-committed timeEntry-documents
+                    queryObj[routesConfig.isDeletedInClientProperty] = false;
                 
                     const promise = mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, queryObj);
                     promise.then((retrievedTimeEntries: ITimeEntryDocument[])=>{
