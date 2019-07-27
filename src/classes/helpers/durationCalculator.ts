@@ -35,7 +35,10 @@ export class DurationCalculator {
     }
     public static calculateDuration(doc: ITimeEntryDocument): string {
         let milliseconds = DurationCalculator.calculateTimeDifferenceWithoutPauses(doc);
-        console.error('milliseconds:' + milliseconds / 1000);
+        
+        // DEBUGGING:
+        // console.error('milliseconds:' + milliseconds / 1000);
+        
         milliseconds = Math.floor(milliseconds / 1000);
         const seconds = milliseconds % 60;
         milliseconds = Math.floor(milliseconds / 60);

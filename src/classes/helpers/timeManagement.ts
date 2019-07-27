@@ -50,7 +50,7 @@ export class TimeManagement {
     }
 
     public static calculateTimeDifferenceWithoutPauses(timeEntry: ITimeEntryDocument): number {
-        if (!timeEntry || !timeEntry.pauses || timeEntry.pauses.length === 0) {
+        if (!timeEntry || !timeEntry.pauses) {
             console.error('cannot calculate duration for:' + JSON.stringify(timeEntry, null, 4));
             return 0;
         }
