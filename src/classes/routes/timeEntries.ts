@@ -158,6 +158,8 @@ const getDurationSumForProjectId = async (req: Request, res: Response) => {
         }
 
         // DEBUGGING:
+        // console.error('taskIds');
+        // console.error(JSON.stringify(taskIds, null, 4));
         // console.error({
         //     taskIds
         // }, null, 4);

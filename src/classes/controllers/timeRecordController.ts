@@ -9,7 +9,7 @@ export default {
     },
     markTimeEntriesAsDeleted(timeEntryIds: string[], mongoDbOperations: MonogDbOperations): Promise<any> {
         // DEBUGGING
-        console.error('timeEntryIds:' + JSON.stringify(timeEntryIds, null, 4));
+        // console.error('timeEntryIds:' + JSON.stringify(timeEntryIds, null, 4));
 
         return new Promise<any>((resolve: (value: any) => void) => {
             let timeEntryIdsIndex = 0;

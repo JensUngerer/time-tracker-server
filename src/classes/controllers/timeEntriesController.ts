@@ -29,6 +29,9 @@ export default {
                 
                     const promise = mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, queryObj);
                     promise.then((retrievedTimeEntries: ITimeEntryDocument[])=>{
+                        // DEBUGGING:
+                        // console.error(JSON.stringify(retrievedTimeEntries, null, 4));
+                        
                         timeEntries = timeEntries.concat(retrievedTimeEntries);
 
                         taskIdIndex++;
@@ -55,6 +58,9 @@ export default {
         const tasksPromise = mongoDbOperations.getFiltered(routesConfig.tasksCollectionName, queryObj);
         return new Promise<any>((resolve: (value: any) => void)=>{
             tasksPromise.then((retrievedTasks: ITasksDocument[]) => {
+                // DEBUGGING:
+                // console.error(JSON.stringify(retrievedTasks, null, 4));
+
                 const taskIds: string[] = [];
                 if (!retrievedTasks || retrievedTasks.length === 0) {
                     console.error('there are no tasks for projectId:' + projectId);
