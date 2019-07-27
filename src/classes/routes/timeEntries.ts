@@ -1,5 +1,4 @@
 import { RequestProcessingHelpers } from './../helpers/requestProcessingHelpers';
-import { FilterQuery } from 'mongodb';
 import asyncHandler from 'express-async-handler';
 
 import express, { Request, Response } from 'express';

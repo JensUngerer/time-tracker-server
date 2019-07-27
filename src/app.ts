@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import path from 'path';
 import myRoutes from './classes/routes/routes';
 import * as routesConfig from './../../common/typescript/routes.js';
+import { MonogDbOperations } from './classes/helpers/mongoDbOperations';
 
 export interface IApp {
     configure(): void;
@@ -15,16 +16,28 @@ export interface IApp {
     listen(port: number): void;
     shutdown(): Promise<boolean>;
     configureRest(): void;
+    setupDatabaseConnection(): void;
+    closeDataBaseConnection(): Promise<void>;
 }
 
 export class App implements IApp{
 
     private express: Application;
     private server: Server;
+    private mongoDbOperations: MonogDbOperations;
 
     public constructor() {
         this.express = express();
         this.server = http.createServer(this.express);
+    }
+
+    public setupDatabaseConnection() {
+        this.mongoDbOperations = new MonogDbOperations();
+        this.mongoDbOperations.prepareConnection();
+    }
+
+    public closeDataBaseConnection(): Promise<void> {
+        return this.mongoDbOperations.closeConnection();
     }
 
     public configure(): void {
