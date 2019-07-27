@@ -5,7 +5,6 @@ export class MonogDbOperations {
     private mongoClient: MongoClient = null;
     private databaseName: string = null;
     private url: string = null;
-    // private db: Db = null;
     private connection: Promise<MongoClient>;
 
     public prepareConnection() {
@@ -13,7 +12,6 @@ export class MonogDbOperations {
         this.databaseName = routes.databaseName;
 
         this.mongoClient = new MongoClient(this.url, { useNewUrlParser: true });
-        // this.db = this.mongoClient.db(this.databaseName);
         this.connection = this.mongoClient.connect();
     }
 
@@ -23,15 +21,9 @@ export class MonogDbOperations {
 
     public patchPush(propertyName: string, propertyValue: any, collectionName: string, queryObj: FilterQuery<any>) {
         return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void) => {
-            // this.mongoClient.connect((err: any) => {
-            //     if (err) {
-            //         console.error(err);
-            //         resolve(err);
-            //         return;
-            //     }
             this.connection.then((theMongoClient: any) => {
                 // DEBUGGING:
-                console.error('connectionSuccess');
+                // console.error('connectionSuccess');
                 // console.error(connectionSuccess);
 
                 const db = this.mongoClient.db(this.databaseName);
@@ -55,7 +47,6 @@ export class MonogDbOperations {
                         return;
                     }
 
-                    // this.mongoClient.close();
                     resolve(result);
                 });
 
@@ -65,25 +56,14 @@ export class MonogDbOperations {
                 console.error(connectionErr);
                 resolve(connectionErr);
             });
-            // const db = this.mongoClient.db(this.databaseName);
-
         });
-        // });
     }
 
     public patch(propertyName: string, propertyValue: any, collectionName: string, queryObj: FilterQuery<any>) {
         return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void) => {
-            // this.mongoClient.connect((err: any) => {
-            //     if (err) {
-            //         console.error(err);
-            //         resolve(err);
-            //         return;
-            //     }
-
-            //     const db = this.mongoClient.db(this.databaseName);
             this.connection.then((theMongoClient: any) => {
                 // DEBUGGING:
-                console.error('connectionSuccess');
+                // console.error('connectionSuccess');
                 // console.error(connectionSuccess);
 
                 const db = this.mongoClient.db(this.databaseName);
@@ -107,7 +87,6 @@ export class MonogDbOperations {
                         return;
                     }
 
-                    // this.mongoClient.close();
                     resolve(result);
                 });
             });
@@ -117,22 +96,13 @@ export class MonogDbOperations {
                 resolve(connectionErr);
             });
         });
-        // });
     }
 
     public getFiltered(collectionName: string, queryObj?: FilterQuery<any>): Promise<any[]> {
         return new Promise<any>((resolve: (value: any[]) => void, reject: (value: any) => void) => {
-            // this.mongoClient.connect((err: any) => {
-            //     if (err) {
-            //         console.error(err);
-            //         resolve(err);
-            //         return;
-            //     }
-            //     const db = this.mongoClient.db(this.databaseName);
-
             this.connection.then((theMongoClient: any) => {
                 // DEBUGGING:
-                console.error('connectionSuccess');
+                // console.error('connectionSuccess');
                 // console.error(connectionSuccess);
 
                 const db = this.mongoClient.db(this.databaseName);
@@ -159,10 +129,8 @@ export class MonogDbOperations {
                     // console.error(JSON.stringify(resolvedData, null, 4));
 
                     resolve(resolvedData);
-                    // this.mongoClient.close();
                 }).catch(() => {
                     resolve([]);
-                    // this.mongoClient.close();
                 });
             });
 
@@ -172,7 +140,6 @@ export class MonogDbOperations {
                 resolve(connectionErr);
             });
         });
-        // });
     }
 
     public insertOne(data: any, collectionName: string) {
@@ -180,17 +147,9 @@ export class MonogDbOperations {
         // https://mongodb.github.io/node-mongodb-native/3.2/
 
         return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void) => {
-            // this.mongoClient.connect((err: any) => {
-            //     if (err) {
-            //         console.error(err);
-            //         resolve(err);
-            //         return;
-            //     }
-
-            //     const db = this.mongoClient.db(this.databaseName);
             this.connection.then((theMongoClient: any) => {
                 // DEBUGGING:
-                console.error('connectionSuccess');
+                // console.error('connectionSuccess');
                 // console.error(connectionSuccess);
 
                 const db = this.mongoClient.db(this.databaseName);
@@ -222,6 +181,5 @@ export class MonogDbOperations {
                 resolve(connectionErr);
             });
         });
-        // });
     }
 }
