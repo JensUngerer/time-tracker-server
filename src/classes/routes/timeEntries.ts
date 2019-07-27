@@ -138,11 +138,11 @@ const patchPauseTimeEntry = async (req: Request, res: Response) => {
     res.json(doSomethingResponse);
 };
 
-const getDurationStr = (req: Request, res: Response) => {
-    // just for DEBUGGING purposes:
+const getDurationStr = async (req: Request, res: Response) => {
     const theId = req.url.substring(req.url.lastIndexOf('/') + 1);
-    console.log(theId);
-    res.json(Math.floor(new Date().getTime() % (60 * 1000)));
+    const response = await timeEntriesController.getDurationStr(theId, App.mongoDbOperations);
+
+    res.json(response);
 };
 
 const rootRoute = router.route('/');

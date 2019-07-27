@@ -9,8 +9,27 @@ import { MonogDbOperations } from '../helpers/mongoDbOperations';
 import { ITimeEntryDocument } from './../../../../common/typescript/mongoDB/iTimeEntryDocument';
 import _ from 'lodash';
 import { IPause } from '../../../../common/typescript/iPause';
+import { DurationCalculator } from '../helpers/durationCalculator';
 
 export default {
+    getDurationStr(timeEntryId: string, mongoDbOperations: MonogDbOperations) {
+        const queryObj: FilterQuery<any> = {}
+        queryObj[routesConfig.timeEntryIdProperty] = timeEntryId;
+        const timeEntriesPromise = mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, queryObj);
+        return new Promise<any>((resolve: (value: any) => void) => {
+            timeEntriesPromise.then((theTimeEntriesDocs: ITimeEntryDocument[])=>{
+                let durationStr = '';
+                if (!theTimeEntriesDocs || theTimeEntriesDocs.length === 0) {
+                    console.error('cannot get duration because of missing timeEntry-document');
+                    return;
+                }
+                const singleTimeEntryDoc = theTimeEntriesDocs[0];
+                durationStr = DurationCalculator.calculateDuration(singleTimeEntryDoc);
+                resolve(durationStr);
+            });
+        });
+        
+    },
     post(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
         const timeEntry: ITimeEntry = req.body[routesConfig.timeEntriesBodyProperty];
 
