@@ -7,6 +7,12 @@ import _ from 'lodash';
 import { FilterQuery } from 'mongodb';
 
 export default {
+    getViaProjectId(projectId: string, mongoDbOperations: MonogDbOperations) {
+        const filterQuery: FilterQuery<any> = {};
+        filterQuery[routes.projectIdPropertyAsForeignKey] = projectId;
+
+        return mongoDbOperations.getFiltered(routes.tasksCollectionName, filterQuery);
+    },
     post(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
         const task: ITask = req.body[routes.taskBodyProperty];
 

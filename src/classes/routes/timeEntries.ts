@@ -1,3 +1,4 @@
+import { UrlHelpers } from './../helpers/urlHelpers';
 import { DurationCalculator } from './../helpers/durationCalculator';
 import { RequestProcessingHelpers } from './../helpers/requestProcessingHelpers';
 import asyncHandler from 'express-async-handler';
@@ -142,14 +143,14 @@ const patchPauseTimeEntry = async (req: Request, res: Response) => {
 };
 
 const getDurationStr = async (req: Request, res: Response) => {
-    const theId = req.url.substring(req.url.lastIndexOf('/') + 1);
+    const theId = UrlHelpers.getIdFromUlr(req.url);
     const response = await timeEntriesController.getDurationStr(theId, App.mongoDbOperations);
 
     res.json(response);
 };
 
 const getDurationSumForProjectId = async (req: Request, res: Response) => {
-    const theId = req.url.substring(req.url.lastIndexOf('/') + 1);
+    const theId = UrlHelpers.getIdFromUlr(req.url);
     try {
         const taskIds = await timeEntriesController.getTaskIdsForProjectId(theId, App.mongoDbOperations);
         if (!taskIds || taskIds.length === 0) {
