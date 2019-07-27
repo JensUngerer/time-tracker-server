@@ -9,6 +9,7 @@ import timeEntriesController from './../controllers/timeEntriesController';
 import routesConfig from './../../../../common/typescript/routes.js';
 import { App } from '../../app';
 import { ITimeEntryDocument } from '../../../../common/typescript/mongoDB/iTimeEntryDocument';
+import { ITimeRecordsDocumentData } from '../../../../common/typescript/mongoDB/iTimeRecordsDocument';
 
 const router = express.Router();
 
@@ -161,6 +162,7 @@ const getDurationSumForProjectId = async (req: Request, res: Response) => {
         //     taskIds
         // }, null, 4);
 
+        const timeEntryIds: string[] = [];
         const timeEntries = await timeEntriesController.getTimeEntriesForTaskIds(taskIds, App.mongoDbOperations);
         if (!timeEntries || timeEntries.length === 0) {
             res.json(null);
@@ -171,17 +173,26 @@ const getDurationSumForProjectId = async (req: Request, res: Response) => {
         // console.error({
         //     timeEntries
         // }, null, 4);
-        console.error(JSON.stringify(timeEntries, null, 4));
+        // console.error(JSON.stringify(timeEntries, null, 4));
 
         let millisecondsSum = 0;
         timeEntries.forEach((oneTimeEntry: ITimeEntryDocument)=>{
             millisecondsSum += DurationCalculator.calculateTimeDifferenceWithoutPauses(oneTimeEntry);
+            timeEntryIds.push(oneTimeEntry.timeEntryId);
         });
+        
         // DEBUGGING:
-        console.error(millisecondsSum);
+        // console.error(millisecondsSum);
 
-        const sumDataStructure = DurationCalculator.getSumDataStructureFromMilliseconds(millisecondsSum);
-        res.json(sumDataStructure);
+        const durationStructure = DurationCalculator.getSumDataStructureFromMilliseconds(millisecondsSum);
+        const dateStructure = DurationCalculator.getCurrentDateStructure();
+
+        const responseValue: ITimeRecordsDocumentData =  {
+            durationStructure,
+            _timeEntryIds: timeEntryIds,
+            dateStructure
+        };
+        res.json(responseValue);
     } catch (e) {
         console.error('an exception occurred');
         console.error(e);

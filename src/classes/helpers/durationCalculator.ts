@@ -1,8 +1,21 @@
 import { ITimeEntryDocument } from "../../../../common/typescript/mongoDB/iTimeEntryDocument";
 import { IPause } from "../../../../common/typescript/iPause";
 import { IDuration } from "../../../../common/typescript/iDuration";
+import { IDate } from "../../../../common/typescript/iDate";
 
 export class DurationCalculator {
+
+    public static getCurrentDateStructure(): IDate {
+        const dateObject = new Date();
+        const day = dateObject.getDate();
+        const month = dateObject.getMonth() + 1;
+        const year = dateObject.getFullYear();
+        return {
+            day,
+            month,
+            year   
+        }
+    }
 
     public static getSumDataStructureFromMilliseconds(milliseconds: number): IDuration {
         milliseconds = Math.floor(milliseconds / 1000);
