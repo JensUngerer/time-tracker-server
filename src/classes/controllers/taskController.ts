@@ -10,6 +10,7 @@ export default {
     getViaProjectId(projectId: string, mongoDbOperations: MonogDbOperations) {
         const filterQuery: FilterQuery<any> = {};
         filterQuery[routes.projectIdPropertyAsForeignKey] = projectId;
+        filterQuery[routes.isDeletedInClientProperty] = false;
 
         return mongoDbOperations.getFiltered(routes.tasksCollectionName, filterQuery);
     },
