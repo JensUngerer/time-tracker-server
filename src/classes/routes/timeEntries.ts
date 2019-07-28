@@ -11,6 +11,7 @@ import routesConfig from './../../../../common/typescript/routes.js';
 import { App } from '../../app';
 import { ITimeEntryDocument } from '../../../../common/typescript/mongoDB/iTimeEntryDocument';
 import { ITimeRecordsDocumentData } from '../../../../common/typescript/mongoDB/iTimeRecordsDocument';
+import { FilterQuery } from 'mongodb';
 
 const router = express.Router();
 
@@ -149,6 +150,55 @@ const getDurationStr = async (req: Request, res: Response) => {
     res.json(response);
 };
 
+const deleteByTaskId = async (req: Request, res: Response) => {
+    const theId = UrlHelpers.getIdFromUlr(req.url);
+
+    // DEBUGGING:
+    // console.error('theId:' + theId);
+
+    try {
+        const timeEntriesByTaskId: ITimeEntryDocument[] = await timeEntriesController.getTimeEntriesForTaskIds([theId], App.mongoDbOperations);
+
+        // DEBUGGING:
+        // console.error(JSON.stringify(timeEntriesByTaskId, null, 4));
+
+        await new Promise((resolve: (value: any) => void) => {
+            let theIndex = 0;
+            const promiseThenLoop = () => {
+                // DELETE
+                // console.error(theIndex + '<' + timeEntriesByTaskId.length);
+                
+                if (theIndex < timeEntriesByTaskId.length) {
+                    const theQueryObj: FilterQuery<any> = {};
+                    const oneTimeEntry: ITimeEntryDocument = timeEntriesByTaskId[theIndex];
+                    theQueryObj[routesConfig.timeEntryIdProperty] = oneTimeEntry.timeEntryId;
+
+                    // patch each of this entries with isDeletedInClient = true
+                    const patchPromise = timeEntriesController.patchDeletedInClient(req, App.mongoDbOperations, theQueryObj);
+                    patchPromise.then(() => {
+                        theIndex++;
+                        promiseThenLoop();
+                    });
+                    patchPromise.catch(() => {
+                        theIndex++;
+                        promiseThenLoop();
+                    });
+                } else {
+                    // DEBUGGING
+                    // console.error('finished');
+                    resolve(true);
+                }
+            };
+            // initial call
+            promiseThenLoop();
+        });
+        res.json(true);
+    } catch (e) {
+        console.error(e);
+        res.json(null);
+    }
+};
+
 const getDurationSumForProjectId = async (req: Request, res: Response) => {
     const theId = UrlHelpers.getIdFromUlr(req.url);
     try {
@@ -179,18 +229,18 @@ const getDurationSumForProjectId = async (req: Request, res: Response) => {
         // console.error(JSON.stringify(timeEntries, null, 4));
 
         let millisecondsSum = 0;
-        timeEntries.forEach((oneTimeEntry: ITimeEntryDocument)=>{
+        timeEntries.forEach((oneTimeEntry: ITimeEntryDocument) => {
             millisecondsSum += DurationCalculator.calculateTimeDifferenceWithoutPauses(oneTimeEntry);
             timeEntryIds.push(oneTimeEntry.timeEntryId);
         });
-        
+
         // DEBUGGING:
         // console.error(millisecondsSum);
 
         const durationStructure = DurationCalculator.getSumDataStructureFromMilliseconds(millisecondsSum);
         const dateStructure = DurationCalculator.getCurrentDateStructure();
 
-        const responseValue: ITimeRecordsDocumentData =  {
+        const responseValue: ITimeRecordsDocumentData = {
             durationStructure,
             _timeEntryIds: timeEntryIds,
             dateStructure
@@ -222,5 +272,8 @@ durationRoute.get(asyncHandler(getDurationStr));
 
 const durationSumRoute = router.route(routesConfig.timeEntriesDurationSumSuffix + '/*');
 durationSumRoute.get(asyncHandler(getDurationSumForProjectId));
+
+const deleteByTaskIdRoute = router.route(routesConfig.deleteTimeEntryByTaskIdSuffix + '/*');
+deleteByTaskIdRoute.delete(asyncHandler(deleteByTaskId));
 
 export default router;

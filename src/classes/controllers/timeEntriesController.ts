@@ -173,13 +173,17 @@ export default {
             patchPromiseForWritingTheDuration.catch(resolve);
         });
     },
-    patchDeletedInClient(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
-        const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
-        const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
-        // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
-        const theQueryObj: FilterQuery<any> = {};
-        theQueryObj[idPropertyName] = timeEntryId;
-
+    patchDeletedInClient(req: Request, mongoDbOperations: MonogDbOperations, filterQuery?: FilterQuery<any>): Promise<any> {
+        let theQueryObj: FilterQuery<any> = {};
+        if (!theQueryObj) {
+            const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
+            const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
+            // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
+            theQueryObj[idPropertyName] = timeEntryId;    
+        } else {
+            theQueryObj = filterQuery;
+        }
+        
         const propertyName = routesConfig.isDeletedInClientProperty;
         const propertyValue = true;
 
