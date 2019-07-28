@@ -15,6 +15,16 @@ import { FilterQuery } from 'mongodb';
 
 const router = express.Router();
 
+const getViaTaskId = async (req: Request, res: Response) => {
+    const taskId = UrlHelpers.getIdFromUlr(req.url);
+    const filterQuery: FilterQuery<any> = {};
+    filterQuery[routesConfig.endDateProperty] = null;
+    filterQuery[routesConfig.taskIdPropertyAsForeignKey] = taskId;
+    const response = await timeEntriesController.get(req, App.mongoDbOperations, filterQuery)
+
+    res.json(response);
+};
+
 const getTimeEntries = async (req: Request, res: Response) => {
     const response = await timeEntriesController.get(req, App.mongoDbOperations);
 
@@ -275,5 +285,8 @@ durationSumRoute.get(asyncHandler(getDurationSumForProjectId));
 
 const deleteByTaskIdRoute = router.route(routesConfig.deleteTimeEntryByTaskIdSuffix + '/*');
 deleteByTaskIdRoute.delete(asyncHandler(deleteByTaskId));
+
+const getViaTaskIdRoute = router.route(routesConfig.timeEntriesViaTaskIdSuffix + '/*');
+getViaTaskIdRoute.get(asyncHandler(getViaTaskId));
 
 export default router;
