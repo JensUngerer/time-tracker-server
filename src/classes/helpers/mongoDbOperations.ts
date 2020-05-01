@@ -155,6 +155,11 @@ export class MonogDbOperations {
                 const db = this.mongoClient.db(this.databaseName);
                 const collection = db.collection(collectionName);
 
+                // DEBUGGING:
+                // console.log('insertOne');
+                // console.log(collectionName);
+                // console.log(JSON.stringify(data, null, 4));
+                
                 // should no longer be necessary as data _should_ not contain _id
                 if (data && data._id) {
                     console.error('there is already an id -> returning');

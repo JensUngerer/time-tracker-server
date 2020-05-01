@@ -11,7 +11,10 @@ const router = express.Router();
 
 const postTimeRecord = async (req: Request, res: Response) => {
     const line: ITimeRecordsDocumentData = req.body[routes.timeRecordBodyProperty];
-    
+ 
+    // DEBUGGING:
+    // console.log(JSON.stringify(line, null, 4));
+
     // a) write into db
     const timeRecordPostResponse = await timeRecordController.post(line, App.mongoDbOperations);
         
