@@ -20,7 +20,7 @@ const getViaTaskId = async (req: Request, res: Response) => {
     const filterQuery: FilterQuery<any> = {};
     filterQuery[routesConfig.endDateProperty] = null;
     filterQuery[routesConfig.taskIdPropertyAsForeignKey] = taskId;
-    const response = await timeEntriesController.get(req, App.mongoDbOperations, filterQuery)
+    const response = await timeEntriesController.get(req, App.mongoDbOperations, filterQuery);
 
     res.json(response);
 };
