@@ -2,7 +2,7 @@ import { MongoDbLogic } from './../helpers/mongoDbLogic';
 import { RequestProcessingHelpers } from './../helpers/requestProcessingHelpers';
 import { TimeManagement } from './../helpers/timeManagement';
 import { FilterQuery } from 'mongodb';
-import { Request } from 'express';
+import { Request, response } from 'express';
 import { ITimeEntry } from './../../../../common/typescript/iTimeEntry';
 import routesConfig from './..&../../../../../../common/typescript/routes.js';
 import { MonogDbOperations } from '../helpers/mongoDbOperations';
@@ -103,6 +103,7 @@ export default {
         const extendedTimeEntry: ITimeEntryDocument = _.clone(timeEntry) as ITimeEntryDocument;
         extendedTimeEntry.isDeletedInClient = false;
         extendedTimeEntry.startTime = new Date(extendedTimeEntry.startTime) as Date;
+        // extendedTimeEntry.day = DurationCalculator.get
 
         // DEBUGGING string or object === date-object?
         // console.log(typeof (extendedTimeEntry.startTime))
@@ -119,18 +120,30 @@ export default {
             return mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, filterQuery);
         }
     },
+    patchDay(req: Request, mongoDbOperations: MonogDbOperations, endTime: Date): Promise<any> {
+        return new Promise<any>((resolve: (value?: any) => void, reject: (value?: any) => void) => {
+            const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
+
+            let propertyName = routesConfig.dayPropertyName;
+            let propertyValue: any = DurationCalculator.getDayFrom(endTime);
+            
+            const patchPromise = mongoDbOperations.patch(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
+            patchPromise.then(resolve);
+            patchPromise.catch(reject);
+        });
+    },
     patchStop(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
         // stop operation
         const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
 
         let propertyName = routesConfig.endDateProperty;
-        let propertyValue: any = new Date();
+        let endTimePropertyValue: any = new Date();
 
-        const firstPatchPromise = mongoDbOperations.patch(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
+        const firstPatchPromise = mongoDbOperations.patch(propertyName, endTimePropertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
 
         return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void) => {
             firstPatchPromise.then((resolvedValue: any) => {
-                resolve(resolvedValue);
+                resolve(endTimePropertyValue);
             });
             firstPatchPromise.catch(() => {
                 const errMsg = 'catch when trying to patch the endDate in a timeEntry:' + theQueryObj[req.body[routesConfig.httpPatchIdPropertyName]];
@@ -213,5 +226,15 @@ export default {
 
         const storeDurationsInPausesPromise = mongoDbLogic.storeDurationInPausesOfDocument(filterQuery, documents);
         return storeDurationsInPausesPromise;
+    },
+    getDurationSumDays(req: Request, mongoDbOperations: MonogDbOperations) {
+        // const mongoDbLogic = new MongoDbLogic(mongoDbOperations);
+
+        // const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
+        let theQueryObj: FilterQuery<any> = {};
+        theQueryObj[routesConfig.isDeletedInClientProperty] = false;
+
+        const promise = mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, theQueryObj); //, theQueryObj);
+        return promise;
     }
 }

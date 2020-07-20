@@ -4,6 +4,17 @@ import { IDuration } from "../../../../common/typescript/iDuration";
 import { IDate } from "../../../../common/typescript/iDate";
 
 export class DurationCalculator {
+    public static getDayFrom(aFullDate: Date) {
+        const year = aFullDate.getFullYear();
+        const month = aFullDate.getMonth();
+        const date = aFullDate.getDate() + 1;
+
+        // https://stackoverflow.com/questions/3894048/what-is-the-best-way-to-initialize-a-javascript-date-to-midnight
+        const dayDate = new Date(year, month, date);
+        // dayDate.setHours(0, 0, 0, 0);
+        dayDate.setUTCHours(0, 0, 0, 0);
+        return dayDate;
+    }
 
     public static getCurrentDateStructure(): IDate {
         const dateObject = new Date();
