@@ -11,6 +11,13 @@ export default {
 
         return mongoDbOperations.insertOne(bookingDeclaration, routes.bookingDeclarationsCollectionName);
     },
+    getViaId(req: Request, mongoDbOperations: MonogDbOperations) {
+        const bookingDeclarationId = UrlHelpers.getIdFromUlr(req.url);
+        const queryObj: FilterQuery<any> = {};
+        queryObj[routes.bookingDeclarationBookingDeclarationIdProperty] = bookingDeclarationId;
+
+        return mongoDbOperations.getFiltered(routes.bookingDeclarationsCollectionName, queryObj);
+    },
     getViaProjectId(req: Request, mongoDbOperations: MonogDbOperations) {
         const projectId = UrlHelpers.getIdFromUlr(req.url);
         const queryObj: FilterQuery<any> = {};

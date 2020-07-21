@@ -67,12 +67,12 @@ const patchTimeEntriesStop = async (req: Request, res: Response) => {
     // const patchedEndTime = (patchStopResponse as ITimeEntryDocument).endTime;
 
     // DEBUGGING:
-    console.log('patchedEndTime:' + patchedEndTime);
+    // console.log('patchedEndTime:' + patchedEndTime);
 
     const patchDayResult = await timeEntriesController.patchDay(req, App.mongoDbOperations, patchedEndTime);
 
     // DEBUGGING:
-    console.log(JSON.stringify(patchDayResult, null, 4));
+    // console.log(JSON.stringify(patchDayResult, null, 4));
 
     // DEBUGGING:
     // console.error(JSON.stringify(response, null, 4));
@@ -236,7 +236,7 @@ const getDurationSumDays = async (req: Request, res: Response) => {
         groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray].durationSumInMilliseconds = newDurationSumInMilliseconds;
         groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray]._timeEntryIds.push(oneTimeEntryDoc.timeEntryId);
         // DEBUGGING:
-        console.log('adding value: ' + currentDurationSumInMilliseconds);
+        // console.log('adding value: ' + currentDurationSumInMilliseconds);
     };
 
     try {
@@ -252,7 +252,7 @@ const getDurationSumDays = async (req: Request, res: Response) => {
                 const convertedDataStructure: IDurationSum[] = [];
 
                 // DEBUGGING:
-                console.log(JSON.stringify(groupedTimeEntriesMap, null, 4));
+                // console.log(JSON.stringify(groupedTimeEntriesMap, null, 4));
 
                 for (const key in groupedTimeEntriesMap) {
                     const value = groupedTimeEntriesMap[key];
@@ -271,6 +271,9 @@ const getDurationSumDays = async (req: Request, res: Response) => {
 
                 if (!bookings || bookings.length !== 1) {
                     console.error('no or more than one booking-ids found');
+                    console.error(JSON.stringify(oneTimeEntryDoc, null, 4));
+                    console.error(JSON.stringify(bookings, null, 4));
+                    console.error('no or more than one booking-ids found');
                     return;
                 }
                 const booking = bookings[0];
@@ -283,7 +286,7 @@ const getDurationSumDays = async (req: Request, res: Response) => {
                         durations: []                    }
                         ;
                     // DEBUGGING:
-                    console.log('created empty entry for dayTimeStamp:' + dayTimeStamp)
+                    // console.log('created empty entry for dayTimeStamp:' + dayTimeStamp)
                 }
                 if (typeof lastIndexInDurationMap[dayTimeStamp] === 'undefined') {
                     lastIndexInDurationMap[dayTimeStamp] = {};
@@ -303,7 +306,7 @@ const getDurationSumDays = async (req: Request, res: Response) => {
                     );
                     lastIndexInDurationMap[dayTimeStamp][oneTimeEntryDoc._bookingDeclarationId] = groupedTimeEntriesMap[dayTimeStamp].durations.length - 1;
                     // DEBUGGING
-                    console.log('created empty entry for _bookingDeclarationId:' + oneTimeEntryDoc._bookingDeclarationId);
+                    // console.log('created empty entry for _bookingDeclarationId:' + oneTimeEntryDoc._bookingDeclarationId);
 
                     // const indexInDurationsArray = lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId];
                     // addCurrentEntry(groupedTimeEntriesMap, indexInDurationsArray, dayTimeStamp, oneTimeEntryDoc);
@@ -312,7 +315,7 @@ const getDurationSumDays = async (req: Request, res: Response) => {
                 const indexInDurationsArray = lastIndexInDurationMap[dayTimeStamp][oneTimeEntryDoc._bookingDeclarationId];
 
                 // DEBUGING:
-                console.log(JSON.stringify(lastIndexInDurationMap, null, 4));
+                // console.log(JSON.stringify(lastIndexInDurationMap, null, 4));
 
                 addCurrentEntry(groupedTimeEntriesMap, indexInDurationsArray, dayTimeStamp, oneTimeEntryDoc);
 

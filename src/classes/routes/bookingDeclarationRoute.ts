@@ -18,13 +18,24 @@ const getViaProjectId = async (req: Request, res: Response) => {
     res.json(response);
 };
 
+const getViaId = async (req: Request, res: Response) => {
+    // DEBUGGING:
+    // console.log('getViaId');
+
+    const response = await bookingDeclarationController.getViaId(req, App.mongoDbOperations);
+
+    res.json(response);
+};
 const rootRoute = router.route('/');
 rootRoute.post(asyncHandler(postBookingDeclaration));
 
 const getViaProjectIdRoute = router.route(routesConfig.bookingDeclarationsByProjectIdSuffix + '/*');
 getViaProjectIdRoute.get(asyncHandler(getViaProjectId));
 
+const getViaIdRoute = router.route('/*');
+getViaIdRoute.get(asyncHandler(getViaId));
+
 // DEBUGGING:
-console.log(getViaProjectIdRoute.path);
+// console.log(getViaProjectIdRoute.path);
 
 export default router;
