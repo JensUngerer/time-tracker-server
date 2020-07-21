@@ -234,7 +234,7 @@ const getDurationSumDays = async (req: Request, res: Response) => {
 
         groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray].durationInHours = newDurationSumInHours;
         groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray].durationSumInMilliseconds = newDurationSumInMilliseconds;
-
+        groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray]._timeEntryIds.push(oneTimeEntryDoc.timeEntryId);
         // DEBUGGING:
         console.log('adding value: ' + currentDurationSumInMilliseconds);
     };
@@ -280,8 +280,7 @@ const getDurationSumDays = async (req: Request, res: Response) => {
                     groupedTimeEntriesMap[dayTimeStamp] =
                     {
                         day,
-                        durations: []
-                    }
+                        durations: []                    }
                         ;
                     // DEBUGGING:
                     console.log('created empty entry for dayTimeStamp:' + dayTimeStamp)
@@ -298,6 +297,7 @@ const getDurationSumDays = async (req: Request, res: Response) => {
                             booking,
                             durationInHours: 0,
                             durationSumInMilliseconds: 0,
+                            _timeEntryIds: []
                             // endTime: oneTimeEntryDoc.timeEntryId
                         }
                     );
@@ -331,7 +331,7 @@ const getDurationSumDays = async (req: Request, res: Response) => {
         // initial call
         loop();
 
-        timeEntryDocs.forEach(async (oneTimeEntryDoc: ITimeEntryDocument) => {
+        // timeEntryDocs.forEach(async (oneTimeEntryDoc: ITimeEntryDocument) => {
             // const bookings = await timeEntriesController.getBooking(oneTimeEntryDoc._bookingDeclarationId, App.mongoDbOperations);
             // // DEbUGGING:
             // // console.log(JSON.stringify(bookings, null, 4));
@@ -399,7 +399,7 @@ const getDurationSumDays = async (req: Request, res: Response) => {
 
             //     // currentIndexMap[dayTimeStamp]++;
             // }
-        });
+        // });
 
     } catch (e) {
         console.error(e);
