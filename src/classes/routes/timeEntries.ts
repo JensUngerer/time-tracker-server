@@ -243,7 +243,7 @@ const getDurationSumDays = async (req: Request, res: Response) => {
         const timeEntryDocs: ITimeEntryDocument[] = await timeEntriesController.getDurationSumDays(req, App.mongoDbOperations);
         const groupedTimeEntriesMap: { [key: number]: IDurationSum } = {};
         // const currentIndexMap: {[key:number]: number} =  {};
-        const lastIndexInDurationMap: { [key: string]: number } = {};
+        const lastIndexInDurationMap: { [dayTimeStamp: number]: {[bookingDeclarationId: string]: number }} = {};
 
         let indexInTimeEntries = 0;
         const loop = () => {
@@ -286,8 +286,12 @@ const getDurationSumDays = async (req: Request, res: Response) => {
                     // DEBUGGING:
                     console.log('created empty entry for dayTimeStamp:' + dayTimeStamp)
                 }
+                if (typeof lastIndexInDurationMap[dayTimeStamp] === 'undefined') {
+                    lastIndexInDurationMap[dayTimeStamp] = {};
+                }
 
-                if (typeof lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId] === 'undefined') {
+
+                if (typeof lastIndexInDurationMap[dayTimeStamp][oneTimeEntryDoc._bookingDeclarationId] === 'undefined') {
                     groupedTimeEntriesMap[dayTimeStamp].durations.push(
                         {
                             // bookingDeclarationId: oneTimeEntryDoc._bookingDeclarationId,
@@ -297,7 +301,7 @@ const getDurationSumDays = async (req: Request, res: Response) => {
                             // endTime: oneTimeEntryDoc.timeEntryId
                         }
                     );
-                    lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId] = groupedTimeEntriesMap[dayTimeStamp].durations.length - 1;
+                    lastIndexInDurationMap[dayTimeStamp][oneTimeEntryDoc._bookingDeclarationId] = groupedTimeEntriesMap[dayTimeStamp].durations.length - 1;
                     // DEBUGGING
                     console.log('created empty entry for _bookingDeclarationId:' + oneTimeEntryDoc._bookingDeclarationId);
 
@@ -305,7 +309,11 @@ const getDurationSumDays = async (req: Request, res: Response) => {
                     // addCurrentEntry(groupedTimeEntriesMap, indexInDurationsArray, dayTimeStamp, oneTimeEntryDoc);
                 }
                 // else  {
-                const indexInDurationsArray = lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId];
+                const indexInDurationsArray = lastIndexInDurationMap[dayTimeStamp][oneTimeEntryDoc._bookingDeclarationId];
+
+                // DEBUGING:
+                console.log(JSON.stringify(lastIndexInDurationMap, null, 4));
+
                 addCurrentEntry(groupedTimeEntriesMap, indexInDurationsArray, dayTimeStamp, oneTimeEntryDoc);
 
                 indexInTimeEntries++;
