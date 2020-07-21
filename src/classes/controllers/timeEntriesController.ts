@@ -236,5 +236,15 @@ export default {
 
         const promise = mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, theQueryObj); //, theQueryObj);
         return promise;
+    },
+    getBooking(bookingId: string, mongoDbOperations: MonogDbOperations) {
+        let theQueryObj: FilterQuery<any> = {};
+        theQueryObj[routesConfig.bookingDeclarationBookingDeclarationIdProperty] = bookingId;
+
+        // DEBUGGING:
+        // console.log(JSON.stringify(theQueryObj, null, 4));
+
+        const promise = mongoDbOperations.getFiltered(routesConfig.bookingDeclarationsCollectionName, theQueryObj); //, theQueryObj);
+        return promise;
     }
 }

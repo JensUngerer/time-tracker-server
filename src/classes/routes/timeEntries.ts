@@ -15,6 +15,7 @@ import { FilterQuery } from 'mongodb';
 
 import { IDurationSum } from './../../../../common/typescript/iDurationSum';
 import { ICommit } from '../../../../common/typescript/iCommit';
+import { IBookingDeclaration } from '../../../../common/typescript/iBookingDeclaration';
 
 const router = express.Router();
 
@@ -190,7 +191,7 @@ const deleteByTaskId = async (req: Request, res: Response) => {
             const promiseThenLoop = () => {
                 // DELETE
                 // console.error(theIndex + '<' + timeEntriesByTaskId.length);
-                
+
                 if (theIndex < timeEntriesByTaskId.length) {
                     const theQueryObj: FilterQuery<any> = {};
                     const oneTimeEntry: ITimeEntryDocument = timeEntriesByTaskId[theIndex];
@@ -224,59 +225,148 @@ const deleteByTaskId = async (req: Request, res: Response) => {
 
 const getDurationSumDays = async (req: Request, res: Response) => {
     // const getYear
-    const addCurrentEntry = (groupedTimeEntriesMap: {[key:number]: IDurationSum}, indexInDurationsArray: number, dayTimeStamp: number, oneTimeEntryDoc: ITimeEntryDocument) => {
+    const addCurrentEntry = (groupedTimeEntriesMap: { [key: number]: IDurationSum }, indexInDurationsArray: number, dayTimeStamp: number, oneTimeEntryDoc: ITimeEntryDocument) => {
         const previousDurationSumInMilliseconds = groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray].durationSumInMilliseconds;
         const currentDurationSumInMilliseconds = oneTimeEntryDoc.endTime.getTime() - oneTimeEntryDoc.startTime.getTime();
         const newDurationSumInMilliseconds = previousDurationSumInMilliseconds + currentDurationSumInMilliseconds;
         let newDurationSumInHours = Math.floor((newDurationSumInMilliseconds / (1000 * 60))) / 60;
         newDurationSumInHours = Math.round(newDurationSumInHours * 100) / 100;
-        
+
         groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray].durationInHours = newDurationSumInHours;
         groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray].durationSumInMilliseconds = newDurationSumInMilliseconds;
-     
+
         // DEBUGGING:
-        console.log('adding value: '+ currentDurationSumInMilliseconds);
+        console.log('adding value: ' + currentDurationSumInMilliseconds);
     };
 
     try {
-        const response: ITimeEntryDocument[] = await timeEntriesController.getDurationSumDays(req, App.mongoDbOperations);
-        const groupedTimeEntriesMap: {[key:number]: IDurationSum} = {};
+        const timeEntryDocs: ITimeEntryDocument[] = await timeEntriesController.getDurationSumDays(req, App.mongoDbOperations);
+        const groupedTimeEntriesMap: { [key: number]: IDurationSum } = {};
         // const currentIndexMap: {[key:number]: number} =  {};
-        const lastIndexInDurationMap:  {[key:string]: number} =  {};
-        response.forEach((oneTimeEntryDoc: ITimeEntryDocument) => {
-            const day = oneTimeEntryDoc.day
-            const dayTimeStamp = day.getTime();
-            if (!groupedTimeEntriesMap[dayTimeStamp]) {
-                groupedTimeEntriesMap[dayTimeStamp] = 
+        const lastIndexInDurationMap: { [key: string]: number } = {};
+
+        let indexInTimeEntries = 0;
+        const loop = () => {
+            if (indexInTimeEntries >= timeEntryDocs.length) {
+                // convert data structure
+                const convertedDataStructure: IDurationSum[] = [];
+
+                // DEBUGGING:
+                console.log(JSON.stringify(groupedTimeEntriesMap, null, 4));
+
+                for (const key in groupedTimeEntriesMap) {
+                    const value = groupedTimeEntriesMap[key];
+                    convertedDataStructure.push(value);
+                }
+
+                res.json(convertedDataStructure);
+                return;
+            }
+            const oneTimeEntryDoc: ITimeEntryDocument = timeEntryDocs[indexInTimeEntries];
+
+            const bookingsPromise = timeEntriesController.getBooking(oneTimeEntryDoc._bookingDeclarationId, App.mongoDbOperations);
+            bookingsPromise.then((bookings: IBookingDeclaration[]) => {
+                // DEbUGGING:
+                // console.log(JSON.stringify(bookings, null, 4));
+
+                if (!bookings || bookings.length !== 1) {
+                    console.error('no or more than one booking-ids found');
+                    return;
+                }
+                const booking = bookings[0];
+                const day = oneTimeEntryDoc.day
+                const dayTimeStamp = day.getTime();
+                if (!groupedTimeEntriesMap[dayTimeStamp]) {
+                    groupedTimeEntriesMap[dayTimeStamp] =
                     {
                         day,
                         durations: []
                     }
-                ;
-                // DEBUGGING:
-                console.log('created empty entry for dayTimeStamp:' + dayTimeStamp)
-            }
+                        ;
+                    // DEBUGGING:
+                    console.log('created empty entry for dayTimeStamp:' + dayTimeStamp)
+                }
 
-            if (typeof lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId] === 'undefined') {
-                groupedTimeEntriesMap[dayTimeStamp].durations.push(
-                    {
-                        bookingDeclarationId: oneTimeEntryDoc._bookingDeclarationId,
-                        durationInHours: 0,
-                        durationSumInMilliseconds: 0,
-                        // endTime: oneTimeEntryDoc.timeEntryId
-                    }
-                );
-                lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId] = groupedTimeEntriesMap[dayTimeStamp].durations.length - 1;
-                // DEBUGGING
-                console.log('created empty entry for _bookingDeclarationId:' + oneTimeEntryDoc._bookingDeclarationId);
+                if (typeof lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId] === 'undefined') {
+                    groupedTimeEntriesMap[dayTimeStamp].durations.push(
+                        {
+                            // bookingDeclarationId: oneTimeEntryDoc._bookingDeclarationId,
+                            booking,
+                            durationInHours: 0,
+                            durationSumInMilliseconds: 0,
+                            // endTime: oneTimeEntryDoc.timeEntryId
+                        }
+                    );
+                    lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId] = groupedTimeEntriesMap[dayTimeStamp].durations.length - 1;
+                    // DEBUGGING
+                    console.log('created empty entry for _bookingDeclarationId:' + oneTimeEntryDoc._bookingDeclarationId);
 
-                // const indexInDurationsArray = lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId];
-                // addCurrentEntry(groupedTimeEntriesMap, indexInDurationsArray, dayTimeStamp, oneTimeEntryDoc);
-            } 
-            // else  {
+                    // const indexInDurationsArray = lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId];
+                    // addCurrentEntry(groupedTimeEntriesMap, indexInDurationsArray, dayTimeStamp, oneTimeEntryDoc);
+                }
+                // else  {
                 const indexInDurationsArray = lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId];
                 addCurrentEntry(groupedTimeEntriesMap, indexInDurationsArray, dayTimeStamp, oneTimeEntryDoc);
-                
+
+                indexInTimeEntries++;
+                loop();
+            });
+            bookingsPromise.catch(() => {
+                console.error('exception when getting booking information');
+
+                indexInTimeEntries++;
+                loop();
+            });
+
+
+        };
+        // initial call
+        loop();
+
+        timeEntryDocs.forEach(async (oneTimeEntryDoc: ITimeEntryDocument) => {
+            // const bookings = await timeEntriesController.getBooking(oneTimeEntryDoc._bookingDeclarationId, App.mongoDbOperations);
+            // // DEbUGGING:
+            // // console.log(JSON.stringify(bookings, null, 4));
+
+            // if (!bookings || bookings.length !== 1) {
+            //     console.error('no or more than one booking-ids found');
+            //     return;
+            // }
+            // const booking = bookings[0];
+            // const day = oneTimeEntryDoc.day
+            // const dayTimeStamp = day.getTime();
+            // if (!groupedTimeEntriesMap[dayTimeStamp]) {
+            //     groupedTimeEntriesMap[dayTimeStamp] = 
+            //         {
+            //             day,
+            //             durations: []
+            //         }
+            //     ;
+            //     // DEBUGGING:
+            //     console.log('created empty entry for dayTimeStamp:' + dayTimeStamp)
+            // }
+
+            // if (typeof lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId] === 'undefined') {
+            //     groupedTimeEntriesMap[dayTimeStamp].durations.push(
+            //         {
+            //             // bookingDeclarationId: oneTimeEntryDoc._bookingDeclarationId,
+            //             booking,
+            //             durationInHours: 0,
+            //             durationSumInMilliseconds: 0,
+            //             // endTime: oneTimeEntryDoc.timeEntryId
+            //         }
+            //     );
+            //     lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId] = groupedTimeEntriesMap[dayTimeStamp].durations.length - 1;
+            //     // DEBUGGING
+            //     console.log('created empty entry for _bookingDeclarationId:' + oneTimeEntryDoc._bookingDeclarationId);
+
+            //     // const indexInDurationsArray = lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId];
+            //     // addCurrentEntry(groupedTimeEntriesMap, indexInDurationsArray, dayTimeStamp, oneTimeEntryDoc);
+            // } 
+            // // else  {
+            //     const indexInDurationsArray = lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId];
+            //     addCurrentEntry(groupedTimeEntriesMap, indexInDurationsArray, dayTimeStamp, oneTimeEntryDoc);
+
             // }
             // // if (groupedTimeEntriesMap[dayTimeStamp].durations.length ) {
 
@@ -295,21 +385,14 @@ const getDurationSumDays = async (req: Request, res: Response) => {
             //     lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId] = 0;
             // } else {
             //     const indexInDurations = lastIndexInDurationMap[oneTimeEntryDoc._bookingDeclarationId] ;
-                
+
             //     groupedTimeEntriesMap[dayTimeStamp].durations[currentIndexMap[dayTimeStamp]].durationInHours = newDurationSumInHours;
             //     groupedTimeEntriesMap[dayTimeStamp].durations[currentIndexMap[dayTimeStamp]].durationSumInMilliseconds = newDurationSumInMilliseconds;
-                
+
             //     // currentIndexMap[dayTimeStamp]++;
             // }
         });
-        // convert data structure
-        const convertedDataStructure: IDurationSum[] = [];
-        for (const key in groupedTimeEntriesMap) {
-            const value = groupedTimeEntriesMap[key];
-            convertedDataStructure.push(value);
-        }
 
-        res.json(convertedDataStructure);    
     } catch (e) {
         console.error(e);
     }
