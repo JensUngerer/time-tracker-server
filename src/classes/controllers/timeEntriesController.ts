@@ -103,7 +103,6 @@ export default {
         const extendedTimeEntry: ITimeEntryDocument = _.clone(timeEntry) as ITimeEntryDocument;
         extendedTimeEntry.isDeletedInClient = false;
         extendedTimeEntry.startTime = new Date(extendedTimeEntry.startTime) as Date;
-        // extendedTimeEntry.day = DurationCalculator.get
 
         // DEBUGGING string or object === date-object?
         // console.log(typeof (extendedTimeEntry.startTime))
@@ -228,13 +227,10 @@ export default {
         return storeDurationsInPausesPromise;
     },
     getDurationSumDays(req: Request, mongoDbOperations: MonogDbOperations) {
-        // const mongoDbLogic = new MongoDbLogic(mongoDbOperations);
-
-        // const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
         let theQueryObj: FilterQuery<any> = {};
         theQueryObj[routesConfig.isDeletedInClientProperty] = false;
 
-        const promise = mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, theQueryObj); //, theQueryObj);
+        const promise = mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, theQueryObj);
         return promise;
     },
     getBooking(bookingId: string, mongoDbOperations: MonogDbOperations) {
@@ -244,7 +240,7 @@ export default {
         // DEBUGGING:
         // console.log(JSON.stringify(theQueryObj, null, 4));
 
-        const promise = mongoDbOperations.getFiltered(routesConfig.bookingDeclarationsCollectionName, theQueryObj); //, theQueryObj);
+        const promise = mongoDbOperations.getFiltered(routesConfig.bookingDeclarationsCollectionName, theQueryObj);
         return promise;
     }
 }

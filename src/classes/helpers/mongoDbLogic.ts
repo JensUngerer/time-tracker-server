@@ -37,15 +37,12 @@ export class MongoDbLogic {
 
     public storeDurationInPausesOfDocument(queryObj: FilterQuery<any>, documents: ITimeEntryDocument[]): Promise<any> {
         return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void) => {
-            // const promise = this.getFiltered(routes.timEntriesCollectionName, queryObj);
-            // promise.then((documents: ITimeEntryDocument[]) => {
             if (!documents || documents.length === 0 || documents.length > 1) {
                 console.error('the documents are empty');
                 resolve('the documents are empty');
                 return;
             }
             const theSingleDoc = documents[0];
-            // let loopCtr = 0;
             const thePauses = theSingleDoc.pauses;
 
             for (let loopCtr = 0; loopCtr < thePauses.length; loopCtr++) {
@@ -58,7 +55,6 @@ export class MongoDbLogic {
             patchArrayPromise.then(resolve);
             patchArrayPromise.catch(reject);
         });
-        // });
     }
 
     private patchDurationsArrayInTimeEntry(pauses: IPause[], queryObj: FilterQuery<any>) {
