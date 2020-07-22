@@ -1,5 +1,5 @@
 import { UrlHelpers } from './../helpers/urlHelpers';
-import { DurationCalculator } from './../helpers/durationCalculator';
+import { DurationCalculator } from './.././../../../common/typescript/helpers/durationCalculator';
 import { RequestProcessingHelpers } from './../helpers/requestProcessingHelpers';
 import asyncHandler from 'express-async-handler';
 
@@ -409,59 +409,59 @@ const getDurationSumDays = async (req: Request, res: Response) => {
     }
 };
 
-const getDurationSumForProjectId = async (req: Request, res: Response) => {
-    const theId = UrlHelpers.getIdFromUlr(req.url);
-    try {
-        const taskIds = await timeEntriesController.getTaskIdsForProjectId(theId, App.mongoDbOperations);
-        if (!taskIds || taskIds.length === 0) {
-            res.json(null);
-            return;
-        }
+// const getDurationSumForProjectId = async (req: Request, res: Response) => {
+//     const theId = UrlHelpers.getIdFromUlr(req.url);
+//     try {
+//         const taskIds = await timeEntriesController.getTaskIdsForProjectId(theId, App.mongoDbOperations);
+//         if (!taskIds || taskIds.length === 0) {
+//             res.json(null);
+//             return;
+//         }
 
-        // DEBUGGING:
-        // console.error('taskIds');
-        // console.error(JSON.stringify(taskIds, null, 4));
-        // console.error({
-        //     taskIds
-        // }, null, 4);
+//         // DEBUGGING:
+//         // console.error('taskIds');
+//         // console.error(JSON.stringify(taskIds, null, 4));
+//         // console.error({
+//         //     taskIds
+//         // }, null, 4);
 
-        const timeEntryIds: string[] = [];
-        const timeEntries = await timeEntriesController.getTimeEntriesForTaskIds(taskIds, App.mongoDbOperations);
-        if (!timeEntries || timeEntries.length === 0) {
-            res.json(null);
-            return;
-        }
+//         const timeEntryIds: string[] = [];
+//         const timeEntries = await timeEntriesController.getTimeEntriesForTaskIds(taskIds, App.mongoDbOperations);
+//         if (!timeEntries || timeEntries.length === 0) {
+//             res.json(null);
+//             return;
+//         }
 
-        // DEBUGGING:
-        // console.error({
-        //     timeEntries
-        // }, null, 4);
-        // console.error(JSON.stringify(timeEntries, null, 4));
+//         // DEBUGGING:
+//         // console.error({
+//         //     timeEntries
+//         // }, null, 4);
+//         // console.error(JSON.stringify(timeEntries, null, 4));
 
-        let millisecondsSum = 0;
-        timeEntries.forEach((oneTimeEntry: ITimeEntryDocument) => {
-            millisecondsSum += DurationCalculator.calculateTimeDifferenceWithoutPauses(oneTimeEntry);
-            timeEntryIds.push(oneTimeEntry.timeEntryId);
-        });
+//         let millisecondsSum = 0;
+//         timeEntries.forEach((oneTimeEntry: ITimeEntryDocument) => {
+//             millisecondsSum += DurationCalculator.calculateTimeDifferenceWithoutPauses(oneTimeEntry);
+//             timeEntryIds.push(oneTimeEntry.timeEntryId);
+//         });
 
-        // DEBUGGING:
-        // console.error(millisecondsSum);
+//         // DEBUGGING:
+//         // console.error(millisecondsSum);
 
-        const durationStructure = DurationCalculator.getSumDataStructureFromMilliseconds(millisecondsSum);
-        const dateStructure = DurationCalculator.getCurrentDateStructure();
+//         const durationStructure = DurationCalculator.getSumDataStructureFromMilliseconds(millisecondsSum);
+//         const dateStructure = DurationCalculator.getCurrentDateStructure();
 
-        const responseValue: ITimeRecordsDocumentData = {
-            durationStructure,
-            _timeEntryIds: timeEntryIds,
-            dateStructure
-        };
-        res.json(responseValue);
-    } catch (e) {
-        console.error('an exception occurred');
-        console.error(e);
-        res.json(null);
-    }
-};
+//         const responseValue: ITimeRecordsDocumentData = {
+//             durationStructure,
+//             _timeEntryIds: timeEntryIds,
+//             dateStructure
+//         };
+//         res.json(responseValue);
+//     } catch (e) {
+//         console.error('an exception occurred');
+//         console.error(e);
+//         res.json(null);
+//     }
+// };
 
 const rootRoute = router.route('/');
 rootRoute.get(asyncHandler(getTimeEntries));

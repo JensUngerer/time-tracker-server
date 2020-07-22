@@ -9,7 +9,7 @@ import { MonogDbOperations } from '../helpers/mongoDbOperations';
 import { ITimeEntryDocument } from './../../../../common/typescript/mongoDB/iTimeEntryDocument';
 import _ from 'lodash';
 import { IPause } from '../../../../common/typescript/iPause';
-import { DurationCalculator } from '../helpers/durationCalculator';
+import { DurationCalculator } from './../../../../common/typescript/helpers/durationCalculator';
 import { ITasksDocument } from '../../../../common/typescript/mongoDB/iTasksDocument';
 
 export default {
