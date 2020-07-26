@@ -11,6 +11,9 @@ import timeEntriesController from './../controllers/timeEntriesController';
 import { RequestProcessingHelpers } from './../helpers/requestProcessingHelpers';
 import { UrlHelpers } from './../helpers/urlHelpers';
 import { ITasksDurationSum } from './../../../../common/typescript/iTasksDurationSum';
+import { CalculateDurationsByDay } from '../helpers/calculateDurationsByDay';
+import { ITask } from '../../../../common/typescript/iTask';
+import taskController from './../controllers/taskController';
 
 const router = express.Router();
 
@@ -217,124 +220,74 @@ const deleteByTaskId = async (req: Request, res: Response) => {
 };
 
 const getDurationSumDays = async (req: Request, res: Response) => {
-    const addCurrentEntry = (groupedTimeEntriesMap: { [key: number]: IDurationSum }, indexInDurationsArray: number, dayTimeStamp: number, oneTimeEntryDoc: ITimeEntryDocument) => {
-        const previousDurationSumInMilliseconds = groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray].durationSumInMilliseconds;
-        const currentDurationSumInMilliseconds = oneTimeEntryDoc.endTime.getTime() - oneTimeEntryDoc.startTime.getTime();
-        const newDurationSumInMilliseconds = previousDurationSumInMilliseconds + currentDurationSumInMilliseconds;
-        let newDurationSumInHours = Math.floor((newDurationSumInMilliseconds / (1000 * 60))) / 60;
-        newDurationSumInHours = Math.round(newDurationSumInHours * 100) / 100;
+    const helper = new CalculateDurationsByDay();
+    const getBasis = (timeEntryDoc: ITimeEntryDocument): Promise<IBookingDeclaration | ITask> => {
+        return new Promise<IBookingDeclaration | ITask>((resolve: (value: IBookingDeclaration)=>void, reject: (value?: any) => void) => {
+            const bookingsPromise = timeEntriesController.getBooking(timeEntryDoc._bookingDeclarationId, App.mongoDbOperations);
+                  bookingsPromise.then((bookings: IBookingDeclaration[]) => {
 
-        groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray].durationInHours = newDurationSumInHours;
-        groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray].durationSumInMilliseconds = newDurationSumInMilliseconds;
-        groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray]._timeEntryIds.push(oneTimeEntryDoc.timeEntryId);
-        // DEBUGGING:
-        // console.log('adding value: ' + currentDurationSumInMilliseconds);
-    };
-
-    try {
-        const timeEntryDocs: ITimeEntryDocument[] = await timeEntriesController.getDurationSumDays(req, App.mongoDbOperations);
-        const groupedTimeEntriesMap: { [key: number]: IDurationSum } = {};
-        const lastIndexInDurationMap: { [dayTimeStamp: number]: {[bookingDeclarationId: string]: number }} = {};
-
-        let indexInTimeEntries = 0;
-        const loop = () => {
-            if (indexInTimeEntries >= timeEntryDocs.length) {
-                // convert data structure
-                const convertedDataStructure: IDurationSum[] = [];
-
-                // DEBUGGING:
-                // console.log(JSON.stringify(groupedTimeEntriesMap, null, 4));
-
-                for (const key in groupedTimeEntriesMap) {
-                    const value = groupedTimeEntriesMap[key];
-                    convertedDataStructure.push(value);
-                }
-
-                res.json(convertedDataStructure);
-                return;
-            }
-            const oneTimeEntryDoc: ITimeEntryDocument = timeEntryDocs[indexInTimeEntries];
-
-            const bookingsPromise = timeEntriesController.getBooking(oneTimeEntryDoc._bookingDeclarationId, App.mongoDbOperations);
-            bookingsPromise.then((bookings: IBookingDeclaration[]) => {
-                // DEbUGGING:
-                // console.log(JSON.stringify(bookings, null, 4));
-
-                if (!bookings || bookings.length !== 1) {
+            
+            if (!bookings || bookings.length !== 1) {
                     console.error('no or more than one booking-ids found');
-                    console.error(JSON.stringify(oneTimeEntryDoc, null, 4));
+                    console.error(JSON.stringify(timeEntryDoc, null, 4));
                     console.error(JSON.stringify(bookings, null, 4));
                     console.error('no or more than one booking-ids found');
-                    res.json(null);
+                    reject(null);
                     return;
                 }
                 const booking = bookings[0];
-                const day = oneTimeEntryDoc.day
-                const dayTimeStamp = day.getTime();
-                if (!groupedTimeEntriesMap[dayTimeStamp]) {
-                    groupedTimeEntriesMap[dayTimeStamp] =
-                    {
-                        day,
-                        durations: []                    }
-                        ;
-                    // DEBUGGING:
-                    // console.log('created empty entry for dayTimeStamp:' + dayTimeStamp)
-                }
-                if (typeof lastIndexInDurationMap[dayTimeStamp] === 'undefined') {
-                    lastIndexInDurationMap[dayTimeStamp] = {};
-                }
-
-
-                if (typeof lastIndexInDurationMap[dayTimeStamp][oneTimeEntryDoc._bookingDeclarationId] === 'undefined') {
-                    groupedTimeEntriesMap[dayTimeStamp].durations.push(
-                        {
-                            booking,
-                            durationInHours: 0,
-                            durationSumInMilliseconds: 0,
-                            _timeEntryIds: []
-                        }
-                    );
-                    lastIndexInDurationMap[dayTimeStamp][oneTimeEntryDoc._bookingDeclarationId] = groupedTimeEntriesMap[dayTimeStamp].durations.length - 1;
-                    // DEBUGGING
-                    // console.log('created empty entry for _bookingDeclarationId:' + oneTimeEntryDoc._bookingDeclarationId);
-                }
-                const indexInDurationsArray = lastIndexInDurationMap[dayTimeStamp][oneTimeEntryDoc._bookingDeclarationId];
-
-                // DEBUGING:
-                // console.log(JSON.stringify(lastIndexInDurationMap, null, 4));
-
-                addCurrentEntry(groupedTimeEntriesMap, indexInDurationsArray, dayTimeStamp, oneTimeEntryDoc);
-
-                indexInTimeEntries++;
-                loop();
+                resolve(booking);
             });
             bookingsPromise.catch(() => {
-                console.error('exception when getting booking information');
-
-                indexInTimeEntries++;
-                loop();
+                reject(null);
             });
-
-
-        };
-        // initial call
-        loop();
-
-    } catch (e) {
-        console.error(e);
-    }
+        });
+    };
+    const getId = (basis: IBookingDeclaration) => {
+        return basis.bookingDeclarationId;
+    };
+    helper.calculate(req, res, getBasis, getId);
 };
 
 const getDurationSumsTasksHandler = async (req: Request, res: Response) => {
-    const durationSumsTasks: ITasksDurationSum[] = 
-    [
-        {
-            day: new Date,
-            durations: []
-        }
-    ];
+    /**
+     * one entry in durationSumsTasks is for one specific day:
+     * on one day several durations are possible (lines in the table in the UI).
+     * So for one line (duration) the sum of (eventually several) time entries needs to be calculated.
+     */
+    // const durationSumsTasks: ITasksDurationSum[] = 
+    // [
+    //     {
+    //         day: new Date,
+    //         durations: []
+    //     }
+    // ];
+    // res.json(durationSumsTasks);
+    const helper = new CalculateDurationsByDay();
+    const getBasis = (timeEntryDoc: ITimeEntryDocument): Promise<IBookingDeclaration | ITask> => {
+        return new Promise<IBookingDeclaration | ITask>((resolve: (value: ITask)=>void, reject: (value?: any) => void) => {
+            const filterQuey: FilterQuery<any> =  {};
+            filterQuey[routesConfig.taskIdProperty] = timeEntryDoc._taskId;
+            filterQuey[routesConfig.isDeletedInClientProperty] = false;
+            const taskPromise = taskController.get(req, App.mongoDbOperations, filterQuey);
+            taskPromise.then((tasks: ITask[]) => {
+                if (!tasks || tasks.length === 0) {
+                    console.error('no tasks found for taskId:' + timeEntryDoc._taskId);
+                    reject(null);
+                    return;
+                }
 
-    res.json(durationSumsTasks);
+                resolve(tasks[0]);
+            });
+            taskPromise.catch(() => {
+                reject(null);
+            });
+        });
+    };
+    const getId = (basis: IBookingDeclaration) => {
+        return basis.bookingDeclarationId;
+    };
+    helper.calculate(req, res, getBasis, getId);
 };
 
 const rootRoute = router.route('/');

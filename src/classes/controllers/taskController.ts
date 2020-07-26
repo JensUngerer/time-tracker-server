@@ -22,10 +22,12 @@ export default {
 
         return mongoDbOperations.insertOne(extendedTask, routes.tasksCollectionName);
     },
-    get(req: Request, mongoDbOperations: MonogDbOperations): Promise<any[]> {
-        const filterQuery: FilterQuery<any> = {};
-        filterQuery[routes.isDeletedInClientProperty] = false;
-      
+    get(req: Request, mongoDbOperations: MonogDbOperations, filterQuery?: FilterQuery<any>): Promise<any[]> {
+        if (!filterQuery) {
+            const defaultFilterQuery: FilterQuery<any> = {};
+            defaultFilterQuery[routes.isDeletedInClientProperty] = false;
+            return mongoDbOperations.getFiltered(routes.tasksCollectionName, defaultFilterQuery);
+        }
         return mongoDbOperations.getFiltered(routes.tasksCollectionName, filterQuery);
     },
     patch(req: Request, mongoDbOperations: MonogDbOperations): Promise<any>  {
