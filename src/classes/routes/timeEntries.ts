@@ -10,6 +10,7 @@ import routesConfig from './../../../../common/typescript/routes.js';
 import timeEntriesController from './../controllers/timeEntriesController';
 import { RequestProcessingHelpers } from './../helpers/requestProcessingHelpers';
 import { UrlHelpers } from './../helpers/urlHelpers';
+import { ITasksDurationSum } from './../../../../common/typescript/iTasksDurationSum';
 
 const router = express.Router();
 
@@ -264,6 +265,7 @@ const getDurationSumDays = async (req: Request, res: Response) => {
                     console.error(JSON.stringify(oneTimeEntryDoc, null, 4));
                     console.error(JSON.stringify(bookings, null, 4));
                     console.error('no or more than one booking-ids found');
+                    res.json(null);
                     return;
                 }
                 const booking = bookings[0];
@@ -323,6 +325,18 @@ const getDurationSumDays = async (req: Request, res: Response) => {
     }
 };
 
+const getDurationSumsTasksHandler = async (req: Request, res: Response) => {
+    const durationSumsTasks: ITasksDurationSum[] = 
+    [
+        {
+            day: new Date,
+            durations: []
+        }
+    ];
+
+    res.json(durationSumsTasks);
+};
+
 const rootRoute = router.route('/');
 rootRoute.get(asyncHandler(getTimeEntries));
 rootRoute.post(asyncHandler(postTimeEntries));
@@ -348,5 +362,8 @@ deleteByTaskIdRoute.delete(asyncHandler(deleteByTaskId));
 
 const getViaTaskIdRoute = router.route(routesConfig.timeEntriesViaTaskIdSuffix + '/*');
 getViaTaskIdRoute.get(asyncHandler(getViaTaskId));
+
+const getDurationSumsTasks = router.route(routesConfig.timeEntriesDurationSumTasksSuffix);
+getDurationSumsTasks.get(asyncHandler(getDurationSumsTasksHandler))
 
 export default router;
