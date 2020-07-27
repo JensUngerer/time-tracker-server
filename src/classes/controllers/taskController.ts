@@ -10,7 +10,7 @@ export default {
     getViaProjectId(projectId: string, mongoDbOperations: MonogDbOperations) {
         const filterQuery: FilterQuery<any> = {};
         filterQuery[routes.projectIdPropertyAsForeignKey] = projectId;
-        filterQuery[routes.isDeletedInClientProperty] = false;
+        filterQuery[routes.isDisabledProperty] = false;
 
         return mongoDbOperations.getFiltered(routes.tasksCollectionName, filterQuery);
     },
@@ -18,14 +18,14 @@ export default {
         const task: ITask = req.body[routes.taskBodyProperty];
 
         const extendedTask: ITasksDocument = _.clone(task) as ITasksDocument;
-        extendedTask.isDeletedInClient = false;
+        extendedTask.isDisabled = false;
 
         return mongoDbOperations.insertOne(extendedTask, routes.tasksCollectionName);
     },
     get(req: Request, mongoDbOperations: MonogDbOperations, filterQuery?: FilterQuery<any>): Promise<any[]> {
         if (!filterQuery) {
             const defaultFilterQuery: FilterQuery<any> = {};
-            defaultFilterQuery[routes.isDeletedInClientProperty] = false;
+            defaultFilterQuery[routes.isDisabledProperty] = false;
             return mongoDbOperations.getFiltered(routes.tasksCollectionName, defaultFilterQuery);
         }
         return mongoDbOperations.getFiltered(routes.tasksCollectionName, filterQuery);

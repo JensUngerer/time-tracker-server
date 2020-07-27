@@ -11,7 +11,7 @@ export default {
         const project: IProject = req.body[routes.projectBodyProperty];
         
         const extendedProject: IProjectsDocument = _.clone(project) as IProjectsDocument;
-        extendedProject.isDeletedInClient = false;
+        extendedProject.isDisabled = false;
         // should not be necessary
         // delete extendedProject._id;
         // this is undefined
@@ -21,7 +21,7 @@ export default {
     },
     get(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
         const filterQuery: FilterQuery<any> = {};
-        filterQuery[routes.isDeletedInClientProperty] = false;
+        filterQuery[routes.isDisabledProperty] = false;
 
         return mongoDbOperations.getFiltered(routes.projectsCollectionName, filterQuery);
     },

@@ -247,6 +247,8 @@ const getDurationSumDays = async (req: Request, res: Response) => {
         return basis.bookingDeclarationId;
     };
     helper.calculate(req, res, getBasis, getId);
+
+    // TODO: mark timeEntries as isDisabledInBooking = true
 };
 
 const getDurationSumsTasksHandler = async (req: Request, res: Response) => {
@@ -268,7 +270,7 @@ const getDurationSumsTasksHandler = async (req: Request, res: Response) => {
         return new Promise<IBookingDeclaration | ITask>((resolve: (value: ITask)=>void, reject: (value?: any) => void) => {
             const filterQuey: FilterQuery<any> =  {};
             filterQuey[routesConfig.taskIdProperty] = timeEntryDoc._taskId;
-            filterQuey[routesConfig.isDeletedInClientProperty] = false;
+            filterQuey[routesConfig.isDisabledProperty] = false;
             const taskPromise = taskController.get(req, App.mongoDbOperations, filterQuey);
             taskPromise.then((tasks: ITask[]) => {
                 if (!tasks || tasks.length === 0) {
@@ -288,6 +290,8 @@ const getDurationSumsTasksHandler = async (req: Request, res: Response) => {
         return basis.bookingDeclarationId;
     };
     helper.calculate(req, res, getBasis, getId);
+
+    // TODO: mark timeEntries as isDisabledInCommit = true
 };
 
 const rootRoute = router.route('/');

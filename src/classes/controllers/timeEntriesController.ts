@@ -101,7 +101,8 @@ export default {
         const timeEntry: ITimeEntry = req.body[routesConfig.timeEntriesBodyProperty];
 
         const extendedTimeEntry: ITimeEntryDocument = _.clone(timeEntry) as ITimeEntryDocument;
-        extendedTimeEntry.isDeletedInClient = false;
+        extendedTimeEntry.isDisabledInBooking = false;
+        extendedTimeEntry.isDisabledInCommit = false;
         extendedTimeEntry.startTime = new Date(extendedTimeEntry.startTime) as Date;
 
         // DEBUGGING string or object === date-object?
