@@ -246,7 +246,7 @@ const getDurationSumDays = async (req: Request, res: Response) => {
     const getId = (basis: IBookingDeclaration) => {
         return basis.bookingDeclarationId;
     };
-    helper.calculate(req, res, getBasis, getId);
+    helper.calculate(req, res, getBasis, getId, routesConfig.isDeletedInClientProperty);
 
     // TODO: mark timeEntries as isDisabledInBooking = true
 };
@@ -289,7 +289,7 @@ const getDurationSumsTasksHandler = async (req: Request, res: Response) => {
     const getId = (basis: IBookingDeclaration) => {
         return basis.bookingDeclarationId;
     };
-    helper.calculate(req, res, getBasis, getId);
+    helper.calculate(req, res, getBasis, getId, routesConfig.isDisabledInCommit);
 
     // TODO: mark timeEntries as isDisabledInCommit = true
 };

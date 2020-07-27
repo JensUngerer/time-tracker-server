@@ -227,9 +227,9 @@ export default {
         const storeDurationsInPausesPromise = mongoDbLogic.storeDurationInPausesOfDocument(filterQuery, documents);
         return storeDurationsInPausesPromise;
     },
-    getDurationSumDays(req: Request, mongoDbOperations: MonogDbOperations) {
+    getDurationSumDays(req: Request, mongoDbOperations: MonogDbOperations, isDisabledProperty: string) {
         let theQueryObj: FilterQuery<any> = {};
-        theQueryObj[routesConfig.isDeletedInClientProperty] = false;
+        theQueryObj[isDisabledProperty] = false;
 
         const promise = mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, theQueryObj);
         return promise;

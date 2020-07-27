@@ -10,7 +10,7 @@ export class CalculateDurationsByDay {
 
     constructor() {}
 
-    async calculate(req: Request, res: Response, getBasis: (timeEntryDoc: ITimeEntryDocument) => Promise<IBookingDeclaration | ITask>, getId: (basis: IBookingDeclaration | ITask) => string/*, addCurrentEntry: (groupedTimeEntriesMap: { [key: number]: IDurationSumBase }, indexInDurationsArray: number, dayTimeStamp: number, oneTimeEntryDoc: ITimeEntryDocument) => void*/) {
+    async calculate(req: Request, res: Response, getBasis: (timeEntryDoc: ITimeEntryDocument) => Promise<IBookingDeclaration | ITask>, getId: (basis: IBookingDeclaration | ITask) => string, isDisabledProperty: string) {
         const addCurrentEntry = (groupedTimeEntriesMap: { [key: number]: IDurationSumBase }, indexInDurationsArray: number, dayTimeStamp: number, oneTimeEntryDoc: ITimeEntryDocument) => {
             const previousDurationSumInMilliseconds = groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray].durationSumInMilliseconds;
             const currentDurationSumInMilliseconds = oneTimeEntryDoc.endTime.getTime() - oneTimeEntryDoc.startTime.getTime();
@@ -26,7 +26,7 @@ export class CalculateDurationsByDay {
         };
 
         try {
-            const timeEntryDocs: ITimeEntryDocument[] = await timeEntriesController.getDurationSumDays(req, App.mongoDbOperations);
+            const timeEntryDocs: ITimeEntryDocument[] = await timeEntriesController.getDurationSumDays(req, App.mongoDbOperations, isDisabledProperty);
             const groupedTimeEntriesMap: { [key: number]: IDurationSumBase } = {};
             const lastIndexInDurationMap: { [dayTimeStamp: number]: { [id: string]: number } } = {};
 
