@@ -120,12 +120,12 @@ export default {
             return mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, filterQuery);
         }
     },
-    patchDay(req: Request, mongoDbOperations: MonogDbOperations, endTime: Date): Promise<any> {
+    patchDay(req: Request, mongoDbOperations: MonogDbOperations, startTime: Date): Promise<any> {
         return new Promise<any>((resolve: (value?: any) => void, reject: (value?: any) => void) => {
             const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
 
             let propertyName = routesConfig.dayPropertyName;
-            let propertyValue: any = DurationCalculator.getDayFrom(endTime);
+            let propertyValue: any = DurationCalculator.getDayFrom(startTime);
             
             const patchPromise = mongoDbOperations.patch(propertyName, propertyValue, routesConfig.timEntriesCollectionName, theQueryObj);
             patchPromise.then(resolve);
@@ -143,7 +143,7 @@ export default {
 
         return new Promise<any>((resolve: (value: any) => void, reject: (value: any) => void) => {
             firstPatchPromise.then((resolvedValue: any) => {
-                resolve(endTimePropertyValue);
+                resolve(true);
             });
             firstPatchPromise.catch(() => {
                 const errMsg = 'catch when trying to patch the endDate in a timeEntry:' + theQueryObj[req.body[routesConfig.httpPatchIdPropertyName]];
