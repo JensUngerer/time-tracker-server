@@ -4,10 +4,10 @@ import { ITimeRecordsDocumentData } from './../../../../common/typescript/mongoD
 import * as routes from '../../../../common/typescript/routes.js';
 
 export default {
-    post(line: ITimeRecordsDocumentData, mongoDbOperations: MonogDbOperations): Promise<any> {
-        return mongoDbOperations.insertOne(line, routes.timeRecordsCollectionName);
+    post(collectionName: string, line: ITimeRecordsDocumentData, mongoDbOperations: MonogDbOperations): Promise<any> {
+        return mongoDbOperations.insertOne(line, collectionName);
     },
-    markTimeEntriesAsDeleted(timeEntryIds: string[], mongoDbOperations: MonogDbOperations): Promise<any> {
+    markTimeEntriesAsDeleted(isDisabledPropertyName: string, timeEntryIds: string[], mongoDbOperations: MonogDbOperations): Promise<any> {
         // DEBUGGING
         // console.error('timeEntryIds:' + JSON.stringify(timeEntryIds, null, 4));
 
@@ -19,7 +19,7 @@ export default {
                     queryObj[routes.timeEntryIdProperty] = timeEntryIds[timeEntryIdsIndex];
                     queryObj[routes.isDeletedInClientProperty] = false;
 
-                    const propertyName = routes.isDeletedInClientProperty;
+                    const propertyName = isDisabledPropertyName;
                     const propertyValue = true;
 
                     const promise = mongoDbOperations.patch(propertyName, propertyValue, routes.timEntriesCollectionName, queryObj);

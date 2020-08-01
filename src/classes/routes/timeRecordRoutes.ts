@@ -11,15 +11,22 @@ const router = express.Router();
 
 const postTimeRecord = async (req: Request, res: Response) => {
     const line: ITimeRecordsDocumentData = req.body[routes.timeRecordBodyProperty];
- 
+    const collectionName: string = req.body[routes.collectionNamePropertyName];
     // DEBUGGING:
-    console.log(JSON.stringify(line, null, 4));
+    // console.log(JSON.stringify(line, null, 4));
 
     // a) write into db
-    const timeRecordPostResponse = await timeRecordController.post(line, App.mongoDbOperations);
+    const timeRecordPostResponse = await timeRecordController.post(collectionName, line, App.mongoDbOperations);
         
     // b) mark timeEntries as isDeletedInClient
-    const markAsDeletedResult = await timeRecordController.markTimeEntriesAsDeleted(line._timeEntryIds, App.mongoDbOperations);
+    let markAsDeletedResult = null;
+    if (collectionName === routes.timeRecordsCollectionName) {
+        markAsDeletedResult = await timeRecordController.markTimeEntriesAsDeleted(routes.isDeletedInClientProperty, line._timeEntryIds, App.mongoDbOperations);
+    } else if(collectionName === routes.commitTimeRecordsCollectionName) {
+        markAsDeletedResult = await timeRecordController.markTimeEntriesAsDeleted(routes.isDisabledInCommit, line._timeEntryIds, App.mongoDbOperations);
+    } else {
+        console.error(collectionName);
+    }
 
     res.json(markAsDeletedResult);
 };
