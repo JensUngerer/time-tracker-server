@@ -34,7 +34,7 @@ export class CalculateDurationsByDay {
             const loop = async () => {
                 if (indexInTimeEntries >= timeEntryDocs.length) {
                     // DEBUGGING:
-                    console.log(JSON.stringify(groupedTimeEntriesMap, null, 4));
+                    // console.log(JSON.stringify(groupedTimeEntriesMap, null, 4));
 
                     // convert data structure
                     const convertedDataStructure: IDurationSumBase[] = [];
@@ -42,10 +42,12 @@ export class CalculateDurationsByDay {
                     for (const timeStamp in groupedTimeEntriesMap) {
                         if (Object.prototype.hasOwnProperty.call(groupedTimeEntriesMap, timeStamp)) {
                             const allIdsOfADay = groupedTimeEntriesMap[timeStamp];
+                            const parsedTimeStamp = parseFloat(timeStamp);
                             const buffer: IDurationSumBase = {
-                                day: new Date(timeStamp),
+                                day: new Date(parsedTimeStamp),
                                 durations: []
                             };
+
                             for (const theId in allIdsOfADay) {
                                 if (Object.prototype.hasOwnProperty.call(allIdsOfADay, theId)) {
                                     const oneSum = allIdsOfADay[theId].durations[0];
