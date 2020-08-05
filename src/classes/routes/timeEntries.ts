@@ -293,8 +293,14 @@ const getDurationSumsTasksHandler = async (req: Request, res: Response) => {
             });
         });
     };
-    const getId = (basis: IBookingDeclaration) => {
-        return basis.bookingDeclarationId;
+    const getId = (basis: IBookingDeclaration | ITask) => {
+        if ((basis as IBookingDeclaration).bookingDeclarationId) {
+            return (basis as IBookingDeclaration).bookingDeclarationId;
+        } else if ((basis as ITask).taskId) {
+            return (basis as ITask).taskId;
+        }
+        console.error('no id found for basis:' + JSON.stringify(basis, null, 4));
+        return null;
     };
     helper.calculate(req, res, getBasis, getId, routesConfig.isDisabledInCommit);
 

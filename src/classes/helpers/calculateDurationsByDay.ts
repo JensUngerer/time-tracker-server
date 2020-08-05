@@ -8,40 +8,52 @@ import { ITask } from "../../../../common/typescript/iTask";
 
 export class CalculateDurationsByDay {
 
-    constructor() {}
+    constructor() { }
 
     async calculate(req: Request, res: Response, getBasis: (timeEntryDoc: ITimeEntryDocument) => Promise<IBookingDeclaration | ITask>, getId: (basis: IBookingDeclaration | ITask) => string, isDisabledProperty: string) {
-        const addCurrentEntry = (groupedTimeEntriesMap: { [key: number]: IDurationSumBase }, indexInDurationsArray: number, dayTimeStamp: number, oneTimeEntryDoc: ITimeEntryDocument) => {
-            const previousDurationSumInMilliseconds = groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray].durationSumInMilliseconds;
+        const addCurrentEntry = (groupedTimeEntriesMap: { [dayTimeStamp: number]: { [taskOrBookingId: string]: IDurationSumBase } }, dayTimeStamp: number, id:string, oneTimeEntryDoc: ITimeEntryDocument) => {
+            const previousDurationSumInMilliseconds = groupedTimeEntriesMap[dayTimeStamp][id].durations[0].durationSumInMilliseconds;
             const currentDurationSumInMilliseconds = oneTimeEntryDoc.endTime.getTime() - oneTimeEntryDoc.startTime.getTime();
             const newDurationSumInMilliseconds = previousDurationSumInMilliseconds + currentDurationSumInMilliseconds;
             let newDurationSumInHours = Math.floor((newDurationSumInMilliseconds / (1000 * 60))) / 60;
             newDurationSumInHours = Math.round(newDurationSumInHours * 100) / 100;
 
-            groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray].durationInHours = newDurationSumInHours;
-            groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray].durationSumInMilliseconds = newDurationSumInMilliseconds;
-            groupedTimeEntriesMap[dayTimeStamp].durations[indexInDurationsArray]._timeEntryIds.push(oneTimeEntryDoc.timeEntryId);
+            groupedTimeEntriesMap[dayTimeStamp][id].durations[0].durationInHours = newDurationSumInHours;
+            groupedTimeEntriesMap[dayTimeStamp][id].durations[0].durationSumInMilliseconds = newDurationSumInMilliseconds;
+            groupedTimeEntriesMap[dayTimeStamp][id].durations[0]._timeEntryIds.push(oneTimeEntryDoc.timeEntryId);
             // DEBUGGING:
             // console.log('adding value: ' + currentDurationSumInMilliseconds);
         };
 
         try {
             const timeEntryDocs: ITimeEntryDocument[] = await timeEntriesController.getDurationSumDays(req, App.mongoDbOperations, isDisabledProperty);
-            const groupedTimeEntriesMap: { [key: number]: IDurationSumBase } = {};
-            const lastIndexInDurationMap: { [dayTimeStamp: number]: { [id: string]: number } } = {};
+            const groupedTimeEntriesMap: { [dayTimeStamp: number]: { [taskOrBookingId: string]: IDurationSumBase } } = {};
+            // const lastIndexInDurationMap: { [dayTimeStamp: number]: { [id: string]: number } } = {};
 
             let indexInTimeEntries = 0;
             const loop = async () => {
                 if (indexInTimeEntries >= timeEntryDocs.length) {
+                    // DEBUGGING:
+                    console.log(JSON.stringify(groupedTimeEntriesMap, null, 4));
+
                     // convert data structure
                     const convertedDataStructure: IDurationSumBase[] = [];
 
-                    // DEBUGGING:
-                    // console.log(JSON.stringify(groupedTimeEntriesMap, null, 4));
-
-                    for (const key in groupedTimeEntriesMap) {
-                        const value = groupedTimeEntriesMap[key];
-                        convertedDataStructure.push(value);
+                    for (const timeStamp in groupedTimeEntriesMap) {
+                        if (Object.prototype.hasOwnProperty.call(groupedTimeEntriesMap, timeStamp)) {
+                            const allIdsOfADay = groupedTimeEntriesMap[timeStamp];
+                            const buffer: IDurationSumBase = {
+                                day: new Date(timeStamp),
+                                durations: []
+                            };
+                            for (const theId in allIdsOfADay) {
+                                if (Object.prototype.hasOwnProperty.call(allIdsOfADay, theId)) {
+                                    const oneSum = allIdsOfADay[theId].durations[0];
+                                    buffer.durations.push(oneSum);
+                                }
+                            }
+                            convertedDataStructure.push(buffer);
+                        }
                     }
 
                     res.json(convertedDataStructure);
@@ -52,46 +64,30 @@ export class CalculateDurationsByDay {
                 const day = oneTimeEntryDoc.day
                 const dayTimeStamp = day.getTime();
                 if (!groupedTimeEntriesMap[dayTimeStamp]) {
-                    groupedTimeEntriesMap[dayTimeStamp] =
-                    {
-                        day,
-                        durations: []
-                    }
-                        ;
-                    // DEBUGGING:
-                    // console.log('created empty entry for dayTimeStamp:' + dayTimeStamp)
-                }
-                if (typeof lastIndexInDurationMap[dayTimeStamp] === 'undefined') {
-                    lastIndexInDurationMap[dayTimeStamp] = {};
+                    groupedTimeEntriesMap[dayTimeStamp] = {};
                 }
 
                 try {
                     const basis = await getBasis(oneTimeEntryDoc);
-                    const id = getId(basis);
+                    const bookingOrTaskId = getId(basis);
+                    if (!groupedTimeEntriesMap[dayTimeStamp][bookingOrTaskId]) {
+                        groupedTimeEntriesMap[dayTimeStamp][bookingOrTaskId] = {
+                            day,
+                            durations: [
+                                {
+                                    basis,
+                                    durationInHours: 0,
+                                    durationSumInMilliseconds: 0,
+                                    _timeEntryIds: []
+                                }
+                            ]
+                        };
+                    } 
 
-                    if (typeof lastIndexInDurationMap[dayTimeStamp][id] === 'undefined') {
-                        groupedTimeEntriesMap[dayTimeStamp].durations.push(
-                            {
-                                basis,
-                                durationInHours: 0,
-                                durationSumInMilliseconds: 0,
-                                _timeEntryIds: []
-                            }
-                        );
-                        lastIndexInDurationMap[dayTimeStamp][id] = groupedTimeEntriesMap[dayTimeStamp].durations.length - 1;
-                        // DEBUGGING
-                        // console.log('created empty entry for _bookingDeclarationId:' + oneTimeEntryDoc._bookingDeclarationId);
-                    }
-                    const indexInDurationsArray = lastIndexInDurationMap[dayTimeStamp][id];
-    
-                    //     // DEBUGGING:
-                    //     // console.log(JSON.stringify(lastIndexInDurationMap, null, 4));
-    
-                    addCurrentEntry(groupedTimeEntriesMap, indexInDurationsArray, dayTimeStamp, oneTimeEntryDoc);
-    
+                    addCurrentEntry(groupedTimeEntriesMap, dayTimeStamp, bookingOrTaskId, oneTimeEntryDoc);
+
                     indexInTimeEntries++;
                     loop();
-                
                 } catch (eBasis) {
                     console.error(eBasis);
 
