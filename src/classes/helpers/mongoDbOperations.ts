@@ -11,7 +11,7 @@ export class MonogDbOperations {
         this.url = routes.url;
         this.databaseName = routes.databaseName;
 
-        this.mongoClient = new MongoClient(this.url, { useNewUrlParser: true });
+        this.mongoClient = new MongoClient(this.url, { useNewUrlParser: true, useUnifiedTopology: true });
         this.connection = this.mongoClient.connect();
     }
 

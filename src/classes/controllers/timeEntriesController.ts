@@ -92,6 +92,10 @@ export default {
                     return;
                 }
                 const singleTimeEntryDoc = theTimeEntriesDocs[0];
+
+                // DEBUGGING
+                // console.log(JSON.stringify(singleTimeEntryDoc, null, 4));
+
                 durationStr = DurationCalculator.calculateDuration(singleTimeEntryDoc);
                 resolve(durationStr);
             });

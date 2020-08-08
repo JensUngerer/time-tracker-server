@@ -178,9 +178,20 @@ const patchPauseTimeEntry = async (req: Request, res: Response) => {
 
 const getDurationStr = async (req: Request, res: Response) => {
     const theId = UrlHelpers.getIdFromUlr(req.url);
+
+    // DEBUGGING:
+    // console.log(theId);
+
     const response = await timeEntriesController.getDurationStr(theId, App.mongoDbOperations);
 
+    // DEBUGGING:
+    // console.log(response);
+
     const stringifiedResponse = Serialization.serialize(response);
+
+    // DEBUGGING:
+    // console.log(stringifiedResponse);
+
     res.send(stringifiedResponse);
 };
 
