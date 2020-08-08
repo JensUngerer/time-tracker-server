@@ -5,6 +5,7 @@ import { ITask } from './../../../../common/typescript/iTask';
 import { ITasksDocument } from './../../../../common/typescript/mongoDB/iTasksDocument';
 import _ from 'lodash';
 import { FilterQuery } from 'mongodb';
+import { Serialization } from '../../../../common/typescript/helpers/serialization';
 
 export default {
     getViaProjectId(projectId: string, mongoDbOperations: MonogDbOperations) {
@@ -15,7 +16,9 @@ export default {
         return mongoDbOperations.getFiltered(routes.tasksCollectionName, filterQuery);
     },
     post(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
-        const task: ITask = req.body[routes.taskBodyProperty];
+        const body = Serialization.deSerialize<any>(req.body);
+
+        const task: ITask = body[routes.taskBodyProperty];
 
         const extendedTask: ITasksDocument = _.clone(task) as ITasksDocument;
         extendedTask.isDisabled = false;
@@ -31,10 +34,12 @@ export default {
         return mongoDbOperations.getFiltered(routes.tasksCollectionName, filterQuery);
     },
     patch(req: Request, mongoDbOperations: MonogDbOperations): Promise<any>  {
-        const propertyName = req.body[routes.httpPatchIdPropertyToUpdateName]; // 'isDeletedInClient';
-        const propertyValue = req.body[routes.httpPatchIdPropertyToUpdateValue]; //true;
-        const idPropertyName = req.body[routes.httpPatchIdPropertyName];
-        const projectId = req.body[routes.httpPatchIdPropertyValue];
+        const body = Serialization.deSerialize<any>(req.body);
+
+        const propertyName = body[routes.httpPatchIdPropertyToUpdateName]; // 'isDeletedInClient';
+        const propertyValue = body[routes.httpPatchIdPropertyToUpdateValue]; //true;
+        const idPropertyName = body[routes.httpPatchIdPropertyName];
+        const projectId = body[routes.httpPatchIdPropertyValue];
 
         // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
         const theQueryObj: FilterQuery<any>  = { };
