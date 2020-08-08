@@ -11,6 +11,7 @@ import _ from 'lodash';
 import { IPause } from '../../../../common/typescript/iPause';
 import { DurationCalculator } from './../../../../common/typescript/helpers/durationCalculator';
 import { ITasksDocument } from '../../../../common/typescript/mongoDB/iTasksDocument';
+import { Serialization } from '../../../../common/typescript/helpers/serialization';
 
 export default {
     getTimeEntriesForTaskIds(taskIds: string[], mongoDbOperations: MonogDbOperations) {
@@ -98,7 +99,9 @@ export default {
         
     },
     post(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
-        const timeEntry: ITimeEntry = req.body[routesConfig.timeEntriesBodyProperty];
+        const body = Serialization.deSerialize<any>(req.body);
+
+        const timeEntry: ITimeEntry = body[routesConfig.timeEntriesBodyProperty];
 
         const extendedTimeEntry: ITimeEntryDocument = _.clone(timeEntry) as ITimeEntryDocument;
         extendedTimeEntry.isDisabledInBooking = false;
@@ -133,6 +136,8 @@ export default {
         });
     },
     patchStop(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
+        const body = Serialization.deSerialize<any>(req.body);
+        
         // stop operation
         const theQueryObj = RequestProcessingHelpers.getFilerQuery(req);
 
@@ -146,7 +151,7 @@ export default {
                 resolve(true);
             });
             firstPatchPromise.catch(() => {
-                const errMsg = 'catch when trying to patch the endDate in a timeEntry:' + theQueryObj[req.body[routesConfig.httpPatchIdPropertyName]];
+                const errMsg = 'catch when trying to patch the endDate in a timeEntry:' + theQueryObj[body[routesConfig.httpPatchIdPropertyName]];
                 console.error(errMsg);
                 reject(errMsg);
             });
@@ -187,10 +192,12 @@ export default {
         });
     },
     patchDeletedInClient(req: Request, mongoDbOperations: MonogDbOperations, filterQuery?: FilterQuery<any>): Promise<any> {
+        const body = Serialization.deSerialize<any>(req.body);
+
         let theQueryObj: FilterQuery<any> = {};
         if (!theQueryObj) {
-            const idPropertyName = req.body[routesConfig.httpPatchIdPropertyName];
-            const timeEntryId = req.body[routesConfig.httpPatchIdPropertyValue];
+            const idPropertyName = body[routesConfig.httpPatchIdPropertyName];
+            const timeEntryId = body[routesConfig.httpPatchIdPropertyValue];
             // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
             theQueryObj[idPropertyName] = timeEntryId;    
         } else {

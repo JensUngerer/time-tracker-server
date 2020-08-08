@@ -4,14 +4,17 @@ import timeRecordController from '../controllers/timeRecordController'; // cont
 import { App } from '../../app';
 import routes = require('../../../../common/typescript/routes');
 import { ITimeRecordsDocumentData } from '../../../../common/typescript/mongoDB/iTimeRecordsDocument';
+import { Serialization } from '../../../../common/typescript/helpers/serialization';
 
 // https://github.com/linnovate/mean/blob/master/server/routes/user.route.js
 
 const router = express.Router();
 
 const postTimeRecord = async (req: Request, res: Response) => {
-    const line: ITimeRecordsDocumentData = req.body[routes.timeRecordBodyProperty];
-    const collectionName: string = req.body[routes.collectionNamePropertyName];
+    const body = Serialization.deSerialize<any>(req.body);
+
+    const line: ITimeRecordsDocumentData = body[routes.timeRecordBodyProperty];
+    const collectionName: string = body[routes.collectionNamePropertyName];
     // DEBUGGING:
     // console.log(JSON.stringify(line, null, 4));
 
