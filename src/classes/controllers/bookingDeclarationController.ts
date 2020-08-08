@@ -5,10 +5,13 @@ import {IBookingDeclaration} from './../../../../common/typescript/iBookingDecla
 import { UrlHelpers } from '../helpers/urlHelpers';
 import { FilterQuery } from 'mongodb';
 import { IBookingDeclarationsDocument } from './../../../../common/typescript/mongoDB/iBookingDeclarationsDocument';
+import { Serialization } from '../../../../common/typescript/helpers/serialization';
 
 export default {
     post(req: Request, mongoDbOperations: MonogDbOperations) {
-        const bookingDeclaration: IBookingDeclaration = req.body[routes.bookingDeclarationProperty];
+        const body = Serialization.deSerialize<any>(req.body);
+
+        const bookingDeclaration: IBookingDeclaration = body[routes.bookingDeclarationProperty];
         const bookingDeclarationDocument: IBookingDeclarationsDocument = bookingDeclaration as IBookingDeclarationsDocument;
         bookingDeclarationDocument.isDisabled = false;
 

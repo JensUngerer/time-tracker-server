@@ -3,19 +3,20 @@ import asyncHandler from 'express-async-handler';
 import { App } from '../../app';
 import bookingDeclarationController from '../controllers/bookingDeclarationController';
 import routesConfig from './../../../../common/typescript/routes.js';
+import { Serialization } from '../../../../common/typescript/helpers/serialization';
 
 const router = express.Router();
 
 const postBookingDeclaration = async (req: Request, res: Response) => {
     const response = await bookingDeclarationController.post(req, App.mongoDbOperations);
-
-    res.json(response);
+    const stringifiedResponse = Serialization.serialize(response);
+    res.send(stringifiedResponse);
 };
 
 const getViaProjectId = async (req: Request, res: Response) => {
     const response = await bookingDeclarationController.getViaProjectId(req, App.mongoDbOperations);
-
-    res.json(response);
+    const stringifiedResponse = Serialization.serialize(response);
+    res.send(stringifiedResponse);
 };
 
 const getViaId = async (req: Request, res: Response) => {
@@ -23,8 +24,8 @@ const getViaId = async (req: Request, res: Response) => {
     // console.log('getViaId');
 
     const response = await bookingDeclarationController.getViaId(req, App.mongoDbOperations);
-
-    res.json(response);
+    const stringifiedResponse = Serialization.serialize(response);
+    res.send(stringifiedResponse);
 };
 const rootRoute = router.route('/');
 rootRoute.post(asyncHandler(postBookingDeclaration));
