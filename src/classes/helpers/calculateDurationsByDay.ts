@@ -5,6 +5,7 @@ import { App } from "../../app";
 import { IDurationSumBase } from "../../../../common/typescript/iDurationSumBase";
 import { IBookingDeclaration } from "../../../../common/typescript/iBookingDeclaration";
 import { ITask } from "../../../../common/typescript/iTask";
+import { Serialization } from "../../../../common/typescript/helpers/serialization";
 
 export class CalculateDurationsByDay {
 
@@ -58,7 +59,8 @@ export class CalculateDurationsByDay {
                         }
                     }
 
-                    res.json(convertedDataStructure);
+                    const stringifiedResponse = Serialization.serialize(convertedDataStructure);
+                    res.send(stringifiedResponse);
                     return;
                 }
                 const oneTimeEntryDoc: ITimeEntryDocument = timeEntryDocs[indexInTimeEntries];

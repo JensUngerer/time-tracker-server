@@ -3,17 +3,16 @@ import asyncHandler from 'express-async-handler';
 import { FilterQuery } from 'mongodb';
 
 import { IBookingDeclaration } from '../../../../common/typescript/iBookingDeclaration';
+import { ITask } from '../../../../common/typescript/iTask';
 import { ITimeEntryDocument } from '../../../../common/typescript/mongoDB/iTimeEntryDocument';
 import { App } from '../../app';
-import { IDurationSum } from './../../../../common/typescript/iDurationSum';
+import { CalculateDurationsByDay } from '../helpers/calculateDurationsByDay';
 import routesConfig from './../../../../common/typescript/routes.js';
+import taskController from './../controllers/taskController';
 import timeEntriesController from './../controllers/timeEntriesController';
 import { RequestProcessingHelpers } from './../helpers/requestProcessingHelpers';
 import { UrlHelpers } from './../helpers/urlHelpers';
-import { ITasksDurationSum } from './../../../../common/typescript/iTasksDurationSum';
-import { CalculateDurationsByDay } from '../helpers/calculateDurationsByDay';
-import { ITask } from '../../../../common/typescript/iTask';
-import taskController from './../controllers/taskController';
+import { Serialization } from '../../../../common/typescript/helpers/serialization';
 
 const router = express.Router();
 
@@ -24,13 +23,15 @@ const getViaTaskId = async (req: Request, res: Response) => {
     filterQuery[routesConfig.taskIdPropertyAsForeignKey] = taskId;
     const response = await timeEntriesController.get(req, App.mongoDbOperations, filterQuery);
 
-    res.json(response);
+    const stringifiedResponse = Serialization.serialize(response);
+    res.send(stringifiedResponse);
 };
 
 const getTimeEntries = async (req: Request, res: Response) => {
     const response = await timeEntriesController.get(req, App.mongoDbOperations);
 
-    res.json(response);
+    const stringifiedResponse = Serialization.serialize(response);
+    res.send(stringifiedResponse);
 };
 
 /**
@@ -43,7 +44,8 @@ const getTimeEntries = async (req: Request, res: Response) => {
 const postTimeEntries = async (req: Request, res: Response) => {
     const response = await timeEntriesController.post(req, App.mongoDbOperations);
 
-    res.json(response);
+    const stringifiedResponse = Serialization.serialize(response);
+    res.send(stringifiedResponse);
 };
 
 /**
@@ -95,7 +97,8 @@ const patchTimeEntriesStop = async (req: Request, res: Response) => {
     // DEBUGGING:
     // console.error(JSON.stringify(durationInDbResponse, null, 4));
 
-    res.json(durationInDbResponse);
+    const stringifiedResponse = Serialization.serialize(durationInDbResponse);
+    res.send(stringifiedResponse);
 };
 
 /**
@@ -106,8 +109,9 @@ const patchTimeEntriesStop = async (req: Request, res: Response) => {
  */
 const patchTimeEntriesDelete = async (req: Request, res: Response) => {
     const response = await timeEntriesController.patchDeletedInClient(req, App.mongoDbOperations);
-
-    res.json(response);
+    
+    const stringifiedResponse = Serialization.serialize(response);
+    res.send(stringifiedResponse);
 };
 
 /**
@@ -119,7 +123,8 @@ const patchTimeEntriesDelete = async (req: Request, res: Response) => {
 const postPauseTimeEntry = async (req: Request, res: Response) => {
     const response = await timeEntriesController.postPause(req, App.mongoDbOperations);
 
-    res.json(response);
+    const stringifiedResponse = Serialization.serialize(response);
+    res.send(stringifiedResponse);
 };
 
 /**
@@ -167,14 +172,16 @@ const patchPauseTimeEntry = async (req: Request, res: Response) => {
     // console.error('doSomethingResponse');
     // console.error(JSON.stringify(doSomethingResponse, null, 4));
 
-    res.json(doSomethingResponse);
+    const stringifiedResponse = Serialization.serialize(doSomethingResponse);
+    res.send(stringifiedResponse);
 };
 
 const getDurationStr = async (req: Request, res: Response) => {
     const theId = UrlHelpers.getIdFromUlr(req.url);
     const response = await timeEntriesController.getDurationStr(theId, App.mongoDbOperations);
 
-    res.json(response);
+    const stringifiedResponse = Serialization.serialize(response);
+    res.send(stringifiedResponse);
 };
 
 const deleteByTaskId = async (req: Request, res: Response) => {
