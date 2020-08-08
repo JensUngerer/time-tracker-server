@@ -5,10 +5,19 @@ import { IProject } from './../../../../common/typescript/iProject';
 import _  from 'lodash';
 import { IProjectsDocument } from './../../../../common/typescript/mongoDB/iProjectsDocument';
 import { FilterQuery } from 'mongodb';
+import { Serialization } from './../../../../common/typescript/helpers/serialization';
 
 export default {
     post(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
-        const project: IProject = req.body[routes.projectBodyProperty];
+        // DEBUGGING:
+        // console.log(req.body);
+
+        const body = Serialization.deSerialize<any>(req.body);
+
+        // DEBUGGING:
+        // console.log(JSON.stringify(body, null, 4));
+
+        const project: IProject = body[routes.projectBodyProperty];
         
         const extendedProject: IProjectsDocument = _.clone(project) as IProjectsDocument;
         extendedProject.isDisabled = false;
@@ -26,10 +35,15 @@ export default {
         return mongoDbOperations.getFiltered(routes.projectsCollectionName, filterQuery);
     },
     patch(req: Request, mongoDbOperations: MonogDbOperations): Promise<any> {
-        const propertyName = req.body[routes.httpPatchIdPropertyToUpdateName]; // 'isDeletedInClient';
-        const propertyValue = req.body[routes.httpPatchIdPropertyToUpdateValue]; //true;
-        const idPropertyName = req.body[routes.httpPatchIdPropertyName];
-        const projectId = req.body[routes.httpPatchIdPropertyValue];
+        const body = Serialization.deSerialize<any>(req.body);
+        
+        // DEBUGGING:
+        console.log(JSON.stringify(body, null, 4));
+
+        const propertyName = body[routes.httpPatchIdPropertyToUpdateName]; // 'isDeletedInClient';
+        const propertyValue = body[routes.httpPatchIdPropertyToUpdateValue]; //true;
+        const idPropertyName = body[routes.httpPatchIdPropertyName];
+        const projectId = body[routes.httpPatchIdPropertyValue];
 
         // https://mongodb.github.io/node-mongodb-native/3.2/tutorials/crud/
         const theQueryObj: FilterQuery<any>  = { /*query: {}*/};

@@ -41,7 +41,8 @@ export class App implements IApp{
     }
 
     public configure(): void {
-        this.express.use(bodyParser.json());
+        // https://stackoverflow.com/questions/12345166/how-to-force-parse-request-body-as-plain-text-instead-of-json-in-express
+        this.express.use(bodyParser.text());
         this.express.use(bodyParser.urlencoded({extended: true}));
         this.express.use(helmet());
         this.express.use(cors());
