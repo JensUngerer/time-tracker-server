@@ -3,6 +3,9 @@ import asyncHandler from 'express-async-handler';
 import projectController from './../controllers/projectController';
 import { App } from '../../app';
 import { Serialization } from '../../../../common/typescript/helpers/serialization';
+import routesConfig from './../../../../common/typescript/routes.js';
+import { RequestProcessingHelpers } from '../helpers/requestProcessingHelpers';
+import { UrlHelpers } from '../helpers/urlHelpers';
 
 const router = express.Router();
 
@@ -24,8 +27,18 @@ const patchProject = async (req: Request, res: Response) => {
     res.send(stringifiedResponse);
 };
 
+const getByTaskIdHandler = async (req: Request, res: Response) => {
+    const taskId = UrlHelpers.getIdFromUlr(req.url);
+    const response = await projectController.getByTaskId(taskId, App.mongoDbOperations);
+    const stringifiedResponse = Serialization.serialize(response);
+    res.send(stringifiedResponse);
+};
+
 const rootRoute = router.route('/');
 rootRoute.post(asyncHandler(postProject));
 rootRoute.get(asyncHandler(getProject));
 rootRoute.patch(asyncHandler(patchProject));
+
+const byTaskIdRoute = router.route(routesConfig.projectByTaskIdSuffix + '/*');
+byTaskIdRoute.get(asyncHandler(getByTaskIdHandler));
 export default router;

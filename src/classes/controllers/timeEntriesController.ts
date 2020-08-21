@@ -14,6 +14,11 @@ import { ITasksDocument } from '../../../../common/typescript/mongoDB/iTasksDocu
 import { Serialization } from '../../../../common/typescript/helpers/serialization';
 
 export default {
+    getRunning(mongoDbOperations: MonogDbOperations) {
+        const queryObj: any = {};
+        queryObj[routesConfig.endDateProperty] = null;
+        return mongoDbOperations.getFiltered(routesConfig.timEntriesCollectionName, queryObj);
+    },
     getTimeEntriesForTaskIds(taskIds: string[], mongoDbOperations: MonogDbOperations) {
         if (!taskIds || taskIds.length === 0) {
             console.error('cannot get timeEntries because of missing taskIds');

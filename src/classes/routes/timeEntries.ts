@@ -13,6 +13,8 @@ import timeEntriesController from './../controllers/timeEntriesController';
 import { RequestProcessingHelpers } from './../helpers/requestProcessingHelpers';
 import { UrlHelpers } from './../helpers/urlHelpers';
 import { Serialization } from '../../../../common/typescript/helpers/serialization';
+import routes from './../../../../common/typescript/routes.js';
+import { ITasksDocument } from '../../../../common/typescript/mongoDB/iTasksDocument';
 
 const router = express.Router();
 
@@ -325,6 +327,37 @@ const getDurationSumsTasksHandler = async (req: Request, res: Response) => {
     // TODO: mark timeEntries as isDisabledInCommit = true
 };
 
+const getRunningTimeEntryHandler = async (req: Request, res: Response) => {
+    const runningTimeEntries : ITimeEntryDocument[] = await timeEntriesController.getRunning(App.mongoDbOperations);
+    if (runningTimeEntries.length === 0) {
+        res.send(Serialization.serialize([]));
+        return;
+    }
+    if (runningTimeEntries.length > 1) {
+        console.error('more than one running time-entry found');
+    }
+
+    const stringifiedResponse = Serialization.serialize(runningTimeEntries[0]);
+    res.send(stringifiedResponse);
+};
+
+const getViaIdHandler = async (req: Request, res: Response) => {
+    const timeEntriesId = UrlHelpers.getIdFromUlr(req.url);
+    const filterQuery: FilterQuery<any> = {};
+    filterQuery[routesConfig.timeEntryIdProperty] = timeEntriesId;
+    const timeEntriesPromise = timeEntriesController.get(req, App.mongoDbOperations, filterQuery);
+    const timeEntries: ITimeEntryDocument[] = await timeEntriesPromise;
+
+    if (!timeEntries || timeEntries.length !== 1)  {
+        console.error('no or more than one time entry found');
+        res.send(null);
+        return;
+    }
+
+    const stringifiedResponse = Serialization.serialize(timeEntries[0]);
+    res.send(stringifiedResponse);
+};
+
 const rootRoute = router.route('/');
 rootRoute.get(asyncHandler(getTimeEntries));
 rootRoute.post(asyncHandler(postTimeEntries));
@@ -353,5 +386,12 @@ getViaTaskIdRoute.get(asyncHandler(getViaTaskId));
 
 const getDurationSumsTasks = router.route(routesConfig.timeEntriesDurationSumTasksSuffix);
 getDurationSumsTasks.get(asyncHandler(getDurationSumsTasksHandler))
+
+const getRunning = router.route(routesConfig.timeEntriesRunningSuffix);
+getRunning.get(asyncHandler(getRunningTimeEntryHandler));
+
+
+const getViaId = router.route('/*');
+getViaId.get(asyncHandler(getViaIdHandler));
 
 export default router;
