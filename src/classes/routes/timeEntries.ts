@@ -330,7 +330,7 @@ const getDurationSumsTasksHandler = async (req: Request, res: Response) => {
 const getRunningTimeEntryHandler = async (req: Request, res: Response) => {
     const runningTimeEntries : ITimeEntryDocument[] = await timeEntriesController.getRunning(App.mongoDbOperations);
     if (runningTimeEntries.length === 0) {
-        res.send(Serialization.serialize([]));
+        res.send(Serialization.serialize(null));
         return;
     }
     if (runningTimeEntries.length > 1) {
