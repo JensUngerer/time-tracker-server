@@ -1,7 +1,6 @@
 import { Application, Response, Request } from 'express';
 import { Server } from 'http';
 import express from 'express';
-import http from 'http';
 import bodyParser = require('body-parser');
 import cors from 'cors';
 import helmet from 'helmet';
@@ -13,22 +12,22 @@ import { MonogDbOperations } from './classes/helpers/mongoDbOperations';
 export interface IApp {
     configure(): void;
     configureExpress(): void;
-    listen(port: number): void;
     shutdown(): Promise<boolean>;
     configureRest(): void;
     setupDatabaseConnection(): void;
     closeDataBaseConnection(): Promise<void>;
 }
 
-export class App implements IApp{
-
+export class App implements IApp {
     private express: Application;
     private server: Server;
     public static mongoDbOperations: MonogDbOperations;
 
-    public constructor() {
+    public constructor(port: number, hostname: string) {
         this.express = express();
-        this.server = http.createServer(this.express);
+        this.server = this.express.listen(port, hostname, () => {
+            console.log('successfully started on: ' + hostname + ':' + port);
+        });
     }
 
     public setupDatabaseConnection() {
@@ -43,7 +42,7 @@ export class App implements IApp{
     public configure(): void {
         // https://stackoverflow.com/questions/12345166/how-to-force-parse-request-body-as-plain-text-instead-of-json-in-express
         this.express.use(bodyParser.text());
-        this.express.use(bodyParser.urlencoded({extended: true}));
+        this.express.use(bodyParser.urlencoded({ extended: true }));
         this.express.use(helmet());
         this.express.use(cors());
     }
@@ -65,7 +64,7 @@ export class App implements IApp{
             // console.log(pathStr);
             response.sendFile('index.html', { root: pathStr });
         });
-        this.express.get('/' + routesConfig.viewsPrefix +'*', (request: Request, response: Response) => {
+        this.express.get('/' + routesConfig.viewsPrefix + '*', (request: Request, response: Response) => {
             // DEBUGGING:
             // console.log(request.url);
             // console.log(pathStr);
@@ -77,29 +76,23 @@ export class App implements IApp{
         this.express.use('/', myRoutes);
     }
 
-    public listen(port: number): void {
-        this.server.listen(port, ()=>{
-            console.error('listening on port:' + port);
-        });
-    }
-
     public shutdown(): Promise<boolean> {
         return new Promise<boolean>((resolve: (value: boolean) => void, reject: (value: any) => void) => {
-        // https://hackernoon.com/graceful-shutdown-in-nodejs-2f8f59d1c357
-        this.server.close((err: Error) => {
-            if (err) {
-                console.error('error when closing the http-server');
-                // console.error(err);
-                // console.error(JSON.stringify(err, null, 4));
-                reject(err);
-                return;
-            }
-            console.error('http-server successfully closed');
+            // https://hackernoon.com/graceful-shutdown-in-nodejs-2f8f59d1c357
+            this.server.close((err: Error) => {
+                if (err) {
+                    console.error('error when closing the http-server');
+                    // console.error(err);
+                    // console.error(JSON.stringify(err, null, 4));
+                    reject(err);
+                    return;
+                }
+                console.error('http-server successfully closed');
 
-            resolve(true)
-        });
+                resolve(true)
+            });
         });
     }
 }
 
-export default new App();
+export default App;
