@@ -7,8 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --mode production --config config/webpack.config.js",
     "start": "yarn run build && node ./dist/index.js",
-    "install": "npm run uninstall && npm run build && node ./install.js",
-    "uninstall": "node ./uninstall.js"
+    "install": "npm run uninstall && npm run build && node ./install/install.js",
+    "uninstall": "node ./install/uninstall.js"
   },
   "keywords": [
     "typescript.",
