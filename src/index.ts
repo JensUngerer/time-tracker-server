@@ -1,13 +1,13 @@
-const EventLogger = require('node-windows').EventLogger;
-const programPath = require('./../programPath.js');
-const programName = require('./../programName.js');
-let eventLogger: any = null;
-// let svc = null;
-if (EventLogger) {
-    eventLogger = new EventLogger('Time-Tracker-Event-Logger');
-    eventLogger.info(programName);
-    eventLogger.info(programPath);
-}
+// const EventLogger = require('node-windows').EventLogger;
+// const programPath = require('./../programPath.js');
+// const programName = require('./../programName.js');
+// let eventLogger: any = null;
+// // let svc = null;
+// if (EventLogger) {
+//     eventLogger = new EventLogger('Time-Tracker-Event-Logger');
+//     eventLogger.info(programName);
+//     eventLogger.info(programPath);
+// }
 // const Service = require('node-windows').Service;
 // if (Service) {
 //     svc = new Service({
@@ -25,9 +25,9 @@ const port: number = routesConfig.port;
 const hostname = routesConfig.hostname;
 
 try {
-    if (eventLogger) {
-        eventLogger.info('starting at:' + hostname + ':' + port);
-    }
+    // if (eventLogger) {
+    //     eventLogger.info('starting at:' + hostname + ':' + port);
+    // }
     
     const app = new App(port, hostname);
 
@@ -63,9 +63,9 @@ try {
     //     eventLogger.info('there is no svc!!!');
     // }
 } catch (e) {
-    if (!eventLogger) {
+    // if (!eventLogger) {
         console.error(JSON.stringify(e, null, 4));
-    } else {
-        eventLogger.error(JSON.stringify(e, null, 4));
-    }
+    // } else {
+    //     eventLogger.error(JSON.stringify(e, null, 4));
+    // }
 }
